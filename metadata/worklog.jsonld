@@ -356,7 +356,8 @@
         "ADR-027"
       ],
       "result": "설명 문구에서 특정 병원 이름 뺌",
-      "pr": "https://github.com/miyeongssam/kim-minji/pull/6"
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/6",
+      "hos:mergeCommit": "160241f"
     },
     {
       "id": "act:014-install-skill",
@@ -384,7 +385,24 @@
         "ADR-028"
       ],
       "result": "스킬 데모에서 8종 브라우저 테스트 통과",
-      "pr": "https://github.com/miyeongssam/kim-minji/pull/6"
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/6",
+      "hos:mergeCommit": "160241f"
+    },
+    {
+      "id": "act:015-skill-upload-handoff",
+      "type": "prov:Activity",
+      "label": "스킬 Claude 설정 업로드, 대화 핸드오프",
+      "date": "2026-10-16",
+      "after": "act:014-install-skill",
+      "by": [
+        "agent:miyeongssam",
+        "agent:claude-code"
+      ],
+      "generated": [
+        "docs/conversation-handoff-20261016.md"
+      ],
+      "result": "pwa-install-guide 를 Claude 설정 스킬에 올림. 대화 전체 핸드오프 작성(PC 보관)",
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/7"
     },
     {
       "id": "src:phone-password-manager-screen",
