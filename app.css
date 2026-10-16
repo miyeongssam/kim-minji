@@ -510,3 +510,4 @@ body.install-on:not(.locked) main { padding-bottom: calc(var(--tabbar) + 150px +
 }
 .rc-input { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: .05em; text-transform: uppercase; }
 .lock .btn.ghost.small { margin-top: 4px; color: var(--muted); text-decoration: underline; }
+.pin-input::placeholder { letter-spacing: normal; font-size: 18px; }

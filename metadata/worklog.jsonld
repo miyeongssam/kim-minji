@@ -319,7 +319,72 @@
         "ADR-025"
       ],
       "result": "복구 테스트 21항목(옛 v1 옮기기 포함)·설치 8종·전체 흐름·어휘 검사 통과",
-      "pr": "https://github.com/miyeongssam/kim-minji/pull/5"
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/5",
+      "hos:mergeCommit": "9983da9"
+    },
+    {
+      "id": "act:012-link-rule",
+      "type": "prov:Activity",
+      "label": "링크 여는 방법 정리",
+      "date": "2026-10-16",
+      "after": "act:011-recovery",
+      "by": [
+        "agent:miyeongssam",
+        "agent:claude-code"
+      ],
+      "decisions": [
+        "ADR-026"
+      ],
+      "result": "바로 눌러도 오류 없음. 안내는 복사해서 크롬(사파리) 주소창으로 통일, 코드 변경 없음"
+    },
+    {
+      "id": "act:013-generic-wording",
+      "type": "prov:Activity",
+      "label": "1.2.2 앱 설명 범용 문구",
+      "date": "2026-10-16",
+      "after": "act:012-link-rule",
+      "by": [
+        "agent:claude-code",
+        "agent:miyeongssam"
+      ],
+      "generated": [
+        "manifest.webmanifest",
+        "CLAUDE.md",
+        "metadata/project.jsonld"
+      ],
+      "decisions": [
+        "ADR-027"
+      ],
+      "result": "설명 문구에서 특정 병원 이름 뺌",
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/6"
+    },
+    {
+      "id": "act:014-install-skill",
+      "type": "prov:Activity",
+      "label": "재사용 스킬 pwa-install-guide, 안내문 새로 쓰기, 슬랙 공지",
+      "date": "2026-10-16",
+      "after": "act:013-generic-wording",
+      "by": [
+        "agent:claude-code",
+        "agent:miyeongssam"
+      ],
+      "used": [
+        "src:choisci-homepage-install-button"
+      ],
+      "generated": [
+        ".claude/skills/pwa-install-guide/SKILL.md",
+        ".claude/skills/pwa-install-guide/reference/install-guide.js",
+        ".claude/skills/pwa-install-guide/reference/install-guide.css",
+        ".claude/skills/pwa-install-guide/reference/install-test.cjs",
+        ".claude/skills/pwa-install-guide/reference/metadata.jsonld",
+        "docs/guide-for-minji.md",
+        "docs/slack-announcement.md"
+      ],
+      "decisions": [
+        "ADR-028"
+      ],
+      "result": "스킬 데모에서 8종 브라우저 테스트 통과",
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/6"
     },
     {
       "id": "src:phone-password-manager-screen",

@@ -6,7 +6,7 @@
  */
 'use strict';
 (() => {
-  const APP_VERSION = '1.2.1';
+  const APP_VERSION = '1.2.2';
   const BACKUP_FORMAT = 'kim-minji/handoff-backup';
   const CONTEXT_URL = 'https://miyeongssam.github.io/kim-minji/ontology/context.jsonld';
   const PBKDF2_ITER = 250000;

@@ -2,7 +2,7 @@
   "id": "/kim-minji/?app=handoff",
   "name": "인계장",
   "short_name": "인계장",
-  "description": "충북대병원 인턴 인계장. 기록은 휴대폰 안에만 암호화해서 저장해요.",
+  "description": "병원 인계장. 기록은 휴대폰 안에만 암호화해서 저장해요.",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",

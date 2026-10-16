@@ -20,7 +20,7 @@
         "prov:Entity"
       ],
       "schema:name": "인계장 (kim-minji)",
-      "schema:description": "충북대병원 인턴용 인계장 PWA. 기록은 휴대폰 안에만 암호화해서 저장한다.",
+      "schema:description": "병원 인계장 PWA(범용). 기록은 휴대폰 안에만 암호화해서 저장한다. 처음 사용: 충북대병원 인턴.",
       "schema:programmingLanguage": [
         "HTML",
         "CSS",
@@ -28,7 +28,7 @@
       ],
       "schema:runtimePlatform": "모바일 브라우저 (iOS Safari, Android Chrome), GitHub Pages",
       "schema:inLanguage": "ko",
-      "schema:version": "1.2.1",
+      "schema:version": "1.2.2",
       "dcterms:created": "2026-10-16",
       "schema:maintainer": {
         "id": "https://github.com/miyeongssam",
@@ -91,6 +91,10 @@
         {
           "id": "data/",
           "schema:description": "공휴일 달력 자료(2026–2027, 근거 포함)"
+        },
+        {
+          "id": ".claude/skills/pwa-install-guide/",
+          "schema:description": "다른 레포에도 쓰는 PWA 홈 화면 설치 가이드 스킬(JSON-LD: reference/metadata.jsonld)"
         }
       ],
       "schema:url": {

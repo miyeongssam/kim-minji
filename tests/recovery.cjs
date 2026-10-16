@@ -9,7 +9,9 @@ const check = (label, ok) => { if (!ok) fail++; console.log(`${ok ? 'OK ' : 'NG 
 
 async function setup(p, pin) {
   await p.fill('#pin1', pin); await p.fill('#pin2', pin); await p.click('button[type=submit]');
-  await p.waitForSelector('#rcShow');
+  await p.waitForSelector('#rcShow', { timeout: 15000 }).catch(async (e) => {
+    throw new Error(`복구 코드 창이 안 뜸. 화면 글: ${await p.locator('#lockErr').innerText().catch(() => '-')} | pin1=${await p.inputValue('#pin1').catch(() => '-')} | ${e.message.split('\n')[0]}`);
+  });
   const code = await p.inputValue('#rcShow');
   await p.check('#rcOk'); await p.click('[data-rc=done]');
   await p.waitForSelector('.fab');
