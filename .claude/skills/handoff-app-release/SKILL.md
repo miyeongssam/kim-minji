@@ -32,9 +32,11 @@ node tests/check-vocab.cjs          # 태그 ↔ 온톨로지 일치
 - 새 기능은 `tests/e2e.cjs`에 확인 단계를 더한다.
 - 스크린샷을 직접 열어 보고, 사용자에게 보여 줄 때는 "휴대폰 화면으로 확인했다"는 근거를 말한다.
 
-## 4. 기록
-- `metadata/decisions.md`에 ADR 한 줄 추가.
+## 4. 기록 (CLAUDE.md 「기록 규칙」)
+- `docs/worklog.md` 표 한 줄 + `metadata/worklog.jsonld`에 `prov:Activity` 하나 (같은 번호).
 - `docs/HANDOFF.md`의 「지금 위치」「다음 순서」 갱신.
+- 새로 정한 것이 있으면 `metadata/decisions.md`에 ADR 한 줄.
+- 버전·배포가 바뀌면 `metadata/project.jsonld`.
 
 ## 5. 올리기
 - `main`이 아니라 작업 브랜치에 커밋 → `main`으로 PR. PR 본문에 바뀐 점·테스트 결과·휴대폰에서 확인할 점을 표로.

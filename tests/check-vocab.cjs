@@ -11,6 +11,7 @@ const vocab = JSON.parse(fs.readFileSync(path.join(root, 'ontology/procedures.js
 const ontoTags = vocab['@graph'].filter((c) => c.appTag).map((c) => c.appTag);
 JSON.parse(fs.readFileSync(path.join(root, 'ontology/context.jsonld'), 'utf8'));
 JSON.parse(fs.readFileSync(path.join(root, 'metadata/project.jsonld'), 'utf8'));
+JSON.parse(fs.readFileSync(path.join(root, 'metadata/worklog.jsonld'), 'utf8'));
 const onlyApp = appTags.filter((t) => !ontoTags.includes(t));
 const onlyOnto = ontoTags.filter((t) => !appTags.includes(t));
 if (onlyApp.length || onlyOnto.length) {

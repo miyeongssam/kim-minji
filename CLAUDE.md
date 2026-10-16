@@ -30,4 +30,14 @@
 6. `metadata/decisions.md`에 결정 추가, `docs/HANDOFF.md` 갱신, `metadata/project.jsonld` 버전 갱신.
 7. 브랜치에 커밋 → `main`으로 PR. 합치면 GitHub Pages(`main` / root)가 자동 배포.
 
+## 기록 규칙 (AI 레디, 매 작업 끝날 때 반드시)
+작업이 하나 끝나면 아래 4곳을 같은 내용으로 함께 고친다. 사용자가 따로 말하지 않아도 한다.
+| 파일 | 적는 것 |
+|---|---|
+| `docs/worklog.md` | 사람용 작업 표 한 줄 (번호·날짜·작업·한 사람·결과·커밋/PR·관련 결정) |
+| `metadata/worklog.jsonld` | 같은 작업을 `prov:Activity` 하나로 (used·generated·after·decisions) |
+| `docs/HANDOFF.md` | 「지금 위치」「다음 순서」 |
+| `metadata/decisions.md` | 새로 정한 것이 있을 때 ADR 한 줄 |
+배포·버전이 바뀌면 `metadata/project.jsonld`도. 개념·칸이 바뀌면 `ontology/`도. 실제 인계 내용·개인 연락처·이메일은 어디에도 적지 않는다.
+
 자세한 단계는 `.claude/skills/handoff-app-release/SKILL.md`.

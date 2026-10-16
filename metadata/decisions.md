@@ -14,3 +14,5 @@
 | ADR-008 | 2026-10-16 | 백업 안 내용은 `@context`가 붙은 JSON-LD | 풀었을 때 바로 뜻이 통하는 데이터 | 확정 |
 | ADR-009 | 2026-10-16 | 프레임워크 없이 HTML·CSS·JS 파일만. CSP로 외부 스크립트 차단 | 빌드 없이 GitHub 웹에서도 고칠 수 있고, 외부 코드가 기록에 닿지 않게 | 확정 |
 | ADR-010 | 2026-10-16 | 인턴 술기 시뮬레이션 게임은 인계장 앱과 따로, 다음 단계로 | 근거 문서(내과 인계장 Word, 시술부위 그림)를 아직 다 읽지 못함 | 보류 |
+| ADR-011 | 2026-10-16 | GitHub Pages: Deploy from a branch, `main` / `(root)`, Enforce HTTPS 켬, 커스텀 도메인 없음 | 빌드 없이 파일 그대로 배포. 암호화(Web Crypto)는 https에서만 작동. 따로 산 주소가 없으므로 기본 주소 사용 | 확정 |
+| ADR-012 | 2026-10-16 | 작업이 끝날 때마다 기록 4곳을 함께 고침: `docs/worklog.md`(사람용) + `metadata/worklog.jsonld`(PROV-O, 기계용) + `docs/HANDOFF.md` + 결정이 있으면 `metadata/decisions.md` | 같은 설명을 반복하지 않고, AI가 작업 이력을 바로 읽을 수 있게(AI 레디) | 확정 |
