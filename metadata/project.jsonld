@@ -28,7 +28,7 @@
       ],
       "schema:runtimePlatform": "모바일 브라우저 (iOS Safari, Android Chrome), GitHub Pages",
       "schema:inLanguage": "ko",
-      "schema:version": "1.1.0",
+      "schema:version": "1.2.0",
       "dcterms:created": "2026-10-16",
       "schema:maintainer": {
         "id": "https://github.com/miyeongssam",
@@ -112,7 +112,8 @@
       },
       "hos:worklog": {
         "id": "metadata/worklog.jsonld"
-      }
+      },
+      "hos:manifestId": "https://miyeongssam.github.io/kim-minji/?app=handoff"
     },
     {
       "id": "src:intern-orientation-2026",

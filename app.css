@@ -469,3 +469,31 @@ input[type=file].in { padding: 9px; }
 .sel-head h2 { margin: 0; font-size: 18px; }
 .hol { font-size: 14px; font-weight: 700; color: var(--red-day); }
 .tabs a:active { background: var(--surface-2); }
+
+/* ---------- 설치 배너·안내 ---------- */
+.install-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tabbar) + 10px + env(safe-area-inset-bottom));
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100% - 24px);
+  padding: 4px 6px 4px 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
+  transform: translateX(-50%);
+}
+body.locked .install-bar { bottom: calc(16px + env(safe-area-inset-bottom)); }
+.install-bar.warn { background: var(--star); color: var(--bg); }
+.install-bar button { border: 0; background: transparent; color: inherit; font-weight: 800; cursor: pointer; }
+.ib-go { min-height: 44px; padding: 0 4px; font-size: 15px; white-space: nowrap; }
+.ib-x { min-width: 40px; min-height: 40px; border-radius: 50%; font-size: 15px; opacity: .85; }
+body.install-on:not(.locked) .fab { bottom: calc(var(--tabbar) + 76px + env(safe-area-inset-bottom)); }
+body.install-on:not(.locked) main { padding-bottom: calc(var(--tabbar) + 150px + env(safe-area-inset-bottom)); }
+.steps { margin: 10px 0 12px; padding-left: 22px; line-height: 1.7; }
+.steps li { margin-bottom: 4px; }
+.install-first { margin: 18px 0 14px; text-align: left; font-size: 15px; }

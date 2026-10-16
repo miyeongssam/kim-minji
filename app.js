@@ -6,7 +6,7 @@
  */
 'use strict';
 (() => {
-  const APP_VERSION = '1.1.0';
+  const APP_VERSION = '1.2.0';
   const BACKUP_FORMAT = 'kim-minji/handoff-backup';
   const CONTEXT_URL = 'https://miyeongssam.github.io/kim-minji/ontology/context.jsonld';
   const PBKDF2_ITER = 250000;
@@ -238,6 +238,26 @@
   function renderLock(message) {
     const setup = !S.vault;
     document.title = '인계장';
+    document.body.classList.add('locked');
+    updateInstallBar();
+    const ist = installState();
+    // 아이폰은 사파리에서 적은 기록이 설치한 앱으로 옮겨지지 않는다 → 설치한 앱에서 PIN을 정하도록 먼저 안내
+    if (setup && !['app', 'desktop'].includes(ist.kind) && !S.skipInstall) {
+      app.innerHTML = `
+        <div class="lock">
+          <div class="lock-box">
+            <img src="icons/icon-192.png" alt="" class="lock-icon">
+            <h1>인계장</h1>
+            <div class="notice warn install-first">
+              <b>먼저 홈 화면에 앱으로 설치하세요.</b><br>
+              설치한 앱(홈 화면 아이콘)에서 PIN을 정해야 기록이 안전하게 남아요.
+            </div>
+            <button type="button" class="btn primary block" data-action="install-help">${['chrome', 'safari'].includes(ist.kind) ? '📲 설치 방법 보기' : `${ist.ios ? '사파리' : '크롬'}에서 열기`}</button>
+            <button type="button" class="btn ghost block small m-top" data-action="skip-install">설치하지 않고 계속하기</button>
+          </div>
+        </div>`;
+      return;
+    }
     app.innerHTML = `
       <div class="lock">
         <div class="lock-box">
@@ -253,7 +273,7 @@
           ${setup ? `<div class="notice">
             · 기록은 이 휴대폰 안에만 암호화되어 저장돼요. 인터넷으로 나가지 않아요.<br>
             · PIN을 잊으면 아무도 복구할 수 없어요. 설정에서 백업을 해 두세요.<br>
-            · 꼭 「홈 화면에 추가」로 설치해서 쓰세요.
+            · 꼭 홈 화면 앱으로 설치해서 쓰세요.
           </div>` : ''}
         </div>
       </div>`;
@@ -452,6 +472,8 @@
   // ---------------------------------------------------------------- 화면 틀
   function shell({ title, back, tab, body, fab }) {
     document.title = `${title} · 인계장`;
+    document.body.classList.remove('locked');
+    updateInstallBar();
     app.innerHTML = `
       <header class="top">
         ${back ? `<a class="btn ghost icon-btn" href="${esc(back)}" aria-label="뒤로">‹</a>` : ''}
@@ -562,7 +584,6 @@
     const wards = [...groups.keys()].sort((a, b) => ((a === '') - (b === '')) || coll.compare(a, b));
 
     const banners = [];
-    if (!isStandalone()) banners.push(`<div class="banner">📲 「홈 화면에 추가」로 설치해서 쓰세요. 설치하지 않으면 기록이 지워질 수 있어요.<a href="#/settings">방법 보기</a></div>`);
     const lb = S.data.settings.lastBackupAt;
     if (S.data.entries.length && (!lb || Date.now() - lb > BACKUP_REMIND_DAYS * 864e5)) {
       banners.push(`<div class="banner">💾 마지막 백업: ${lb ? esc(fmtStamp(lb)) : '없음'}<a href="#/settings">백업하기</a></div>`);
@@ -838,10 +859,9 @@
           ${standalone
             ? '<p class="small muted">홈 화면 앱으로 쓰고 있어요. 앞으로도 홈 화면 아이콘으로만 여세요.</p>'
             : `<div class="notice warn">아직 설치하지 않았어요. 설치하지 않으면 (특히 아이폰에서) 기록이 지워질 수 있어요.</div>
-               ${S.installEvt ? '<div class="row"><button type="button" class="btn primary grow" data-action="install">앱 설치하기</button></div>' : ''}
-               <p class="small">${isIOS()
-                 ? '아이폰: 사파리 아래쪽 <b>공유 버튼(□↑)</b> → <b>홈 화면에 추가</b> → 추가.<br>설치한 뒤에는 홈 화면 아이콘으로만 여세요. 사파리에서 쓰던 기록은 앱으로 옮겨지지 않아요.'
-                 : '안드로이드: 크롬 오른쪽 위 <b>⋮</b> → <b>홈 화면에 추가</b>(또는 앱 설치) → 설치.<br>설치한 뒤에는 홈 화면 아이콘으로만 여세요.'}</p>`}
+               <p class="small muted">지금 연 곳: ${esc(installState().name || ({ chrome: '크롬', safari: '사파리', desktop: '컴퓨터' })[installState().kind] || '')}</p>
+               <div class="row"><button type="button" class="btn primary grow" data-action="install-help">📲 설치 방법 보기</button></div>
+               <p class="small">링크를 받으면 주소를 복사해서 <b>안드로이드는 크롬, 아이폰은 사파리</b> 주소창에 붙여넣고 여세요.</p>`}
         </section>
 
         <section class="sec">
@@ -1158,13 +1178,8 @@
       save();
       viewEdit(id || null, id ? undefined : S.curDate);
     },
-    install: async () => {
-      if (!S.installEvt) return;
-      S.installEvt.prompt();
-      try { await S.installEvt.userChoice; } catch { /* 취소 */ }
-      S.installEvt = null;
-      viewSettings();
-    },
+    'install-help': () => installHelp(),
+    'skip-install': () => { S.skipInstall = true; renderLock(); },
     'export-save': () => exportSave(),
     'export-share': () => exportShare(),
     'pick-file': () => { S.externalUntil = Date.now() + 120e3; },
@@ -1231,8 +1246,124 @@
   });
 
   // ---------------------------------------------------------------- 설치·업데이트
+  // 학원 홈페이지(choisci-homepage InstallAppButton)와 같은 방식:
+  //   안드로이드 크롬 → 크롬 설치 창, 아이폰 사파리 → 2단계 안내, 그 밖(카톡·슬랙·문자 앱 안 화면 등) → 크롬/사파리로 열기.
+  //   배너는 설치할 때까지 열 때마다 다시 보인다(✕는 이번에만 닫기).
+  const APP_URL = location.origin + location.pathname;
+  const UA = navigator.userAgent;
+  const IN_APP = [[/KAKAOTALK/i, '카카오톡'], [/Slack/i, '슬랙'], [/NAVER\(inapp/i, '네이버 앱'], [/Instagram/i, '인스타그램'],
+    [/FBAN|FBAV|FB_IAB/i, '페이스북'], [/\bLine\//i, '라인'], [/BAND\//i, '밴드'], [/DaumApps/i, '다음 앱'], [/Telegram/i, '텔레그램'], [/everytimeApp/i, '에브리타임']];
+  function installState() {
+    if (isStandalone()) return { kind: 'app' };
+    const ios = isIOS();
+    const android = /Android/i.test(UA);
+    if (!ios && !android) return { kind: 'desktop' };
+    const hit = IN_APP.find(([re]) => re.test(UA));
+    if (hit) return { kind: 'inapp', name: hit[1], ios, android, kakao: /KAKAOTALK/i.test(UA) };
+    if (ios) {
+      if (/CriOS|FxiOS|EdgiOS|OPiOS|Whale/i.test(UA)) return { kind: 'other', name: '다른 브라우저', ios };
+      if (!/Safari\//.test(UA)) return { kind: 'inapp', name: '앱 안 화면', ios };
+      return { kind: 'safari', ios };
+    }
+    if (/; wv\)/.test(UA)) return { kind: 'inapp', name: '앱 안 화면', android };
+    const other = UA.match(/SamsungBrowser|EdgA|OPR|Whale|YaBrowser|Firefox|UCBrowser|MiuiBrowser|HuaweiBrowser/i);
+    if (other || !/Chrome\//.test(UA)) return { kind: 'other', name: other && /Samsung/i.test(other[0]) ? '삼성 인터넷' : '다른 브라우저', android };
+    return { kind: 'chrome', android };
+  }
+
+  function updateInstallBar() {
+    const st = installState();
+    const show = !['app', 'desktop'].includes(st.kind) && !S.installBarClosed;
+    document.body.classList.toggle('install-on', show);
+    let bar = document.getElementById('installBar');
+    if (!show) { bar?.remove(); return; }
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'installBar';
+      bar.className = 'install-bar';
+      bar.setAttribute('role', 'region');
+      bar.setAttribute('aria-label', '앱 설치 안내');
+      bar.addEventListener('click', (e) => {
+        if (e.target.closest('[data-ib=close]')) { S.installBarClosed = true; updateInstallBar(); } else if (e.target.closest('[data-ib=go]')) installHelp();
+      });
+      document.body.appendChild(bar);
+    }
+    const ok = ['chrome', 'safari'].includes(st.kind);
+    bar.classList.toggle('warn', !ok);
+    bar.innerHTML = `<button type="button" class="ib-go" data-ib="go">${ok ? '📲 홈 화면에 앱으로 설치' : `⚠️ ${st.ios ? '사파리' : '크롬'}에서 열어야 설치돼요`}</button>
+      <button type="button" class="ib-x" data-ib="close" aria-label="이번에만 닫기">✕</button>`;
+  }
+
+  async function installHelp() {
+    const st = installState();
+    if (st.kind === 'app') { toast('이미 홈 화면 앱으로 쓰고 있어요'); return; }
+    if (st.kind === 'desktop') { toast('휴대폰에서 열어 설치하세요'); return; }
+    if (st.kind === 'chrome' && S.installEvt) {
+      const evt = S.installEvt;
+      S.installEvt = null;
+      evt.prompt();
+      try { await evt.userChoice; } catch { /* 취소 */ }
+      return;
+    }
+    if (st.kind === 'chrome') return androidGuide();
+    if (st.kind === 'safari') return iosGuide();
+    return openInBrowserGuide(st);
+  }
+  function androidGuide() {
+    return openModal(`
+      <h2>📲 안드로이드에서 앱으로 설치하기</h2>
+      <ol class="steps">
+        <li>크롬 오른쪽 위 <b>⋮</b>(점 세 개)를 누르세요</li>
+        <li><b>「앱 설치」</b> 또는 <b>「홈 화면에 추가 → 설치」</b>를 누르세요</li>
+        <li>홈 화면에 생긴 <b>인계장</b> 아이콘으로 여세요</li>
+      </ol>
+      <div class="notice warn">「바로가기 만들기」는 고르지 마세요. 앱이 아니라 크롬 안에서 열리는 바로가기예요.</div>
+      <p class="small muted">"이미 설치되어 있다"는데 앱 목록에 없으면: 휴대폰 설정 → 애플리케이션에서 「인계장」을 지우고, 크롬을 완전히 닫았다가 다시 해 보세요.</p>
+      <div class="m-btns"><button type="button" class="btn primary" data-m="cancel">알겠어요</button></div>`);
+  }
+  function iosGuide() {
+    return openModal(`
+      <h2>📲 아이폰에서 앱으로 설치하기</h2>
+      <ol class="steps">
+        <li>화면 아래 가운데 <b>공유 버튼(□↑)</b>을 누르세요</li>
+        <li>메뉴를 내려 <b>「홈 화면에 추가」</b> → <b>추가</b>를 누르세요</li>
+        <li>홈 화면에 생긴 <b>인계장</b> 아이콘으로 여세요</li>
+      </ol>
+      <div class="notice warn">사파리에서만 돼요. 사파리에서 적은 기록은 설치한 앱으로 옮겨지지 않으니, 설치한 앱에서 PIN을 정하고 쓰세요.</div>
+      <div class="m-btns"><button type="button" class="btn primary" data-m="cancel">알겠어요</button></div>`);
+  }
+  function openInBrowserGuide(st) {
+    const target = st.ios ? '사파리' : '크롬';
+    return openModal(`
+      <h2>⚠️ 이 화면에서는 설치가 안 돼요</h2>
+      <p class="m-msg">지금 <b>${esc(st.name || '다른 화면')}</b>에서 열려 있어요. <b>${target}</b>에서 열어야 설치되고 기록도 안전해요.</p>
+      ${st.android ? '<button type="button" class="btn primary block m-top" data-open="chrome">크롬으로 열기</button>' : ''}
+      ${st.ios && st.kakao ? '<button type="button" class="btn primary block m-top" data-open="kakao">사파리로 열기</button>' : ''}
+      <label class="f" for="appUrl">앱 주소</label>
+      <input class="in" id="appUrl" readonly value="${esc(APP_URL)}">
+      <button type="button" class="btn block m-top" data-copy-url>📋 주소 복사</button>
+      <p class="small muted">버튼이 안 되면: 주소를 복사해서 <b>${target} 주소창</b>에 붙여넣고 여세요.</p>
+      <div class="m-btns"><button type="button" class="btn" data-m="cancel">닫기</button></div>`, (w) => {
+      w.addEventListener('click', (e) => {
+        const open = e.target.closest('[data-open]');
+        if (open?.dataset.open === 'chrome') {
+          location.href = `intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(APP_URL)};end`;
+        } else if (open?.dataset.open === 'kakao') {
+          location.href = `kakaotalk://web/openExternal?url=${encodeURIComponent(APP_URL)}`;
+        } else if (e.target.closest('[data-copy-url]')) {
+          copyText(APP_URL, $('#appUrl', w)).then((ok) => toast(ok ? `복사했어요. ${target} 주소창에 붙여넣으세요` : '주소를 길게 눌러 직접 복사하세요'));
+        }
+      });
+    });
+  }
+
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); S.installEvt = e; });
-  window.addEventListener('appinstalled', () => { S.installEvt = null; toast('설치했어요. 이제 홈 화면 아이콘으로 여세요'); });
+  window.addEventListener('appinstalled', () => {
+    S.installEvt = null;
+    S.installBarClosed = true;
+    updateInstallBar();
+    toast('설치했어요. 이제 홈 화면 아이콘으로 여세요');
+  });
 
   function registerSW() {
     if (!('serviceWorker' in navigator)) return;
