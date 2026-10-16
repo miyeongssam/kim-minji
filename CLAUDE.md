@@ -1,6 +1,7 @@
 # kim-minji — 인계장 PWA
 
-충북대병원 인턴(김민지)용 인계장 앱. 관리자: miyeongssam(최미영). 답은 한국어, 쉬운 말로.
+병원 인계장 앱(범용). 처음 사용자: 충북대병원 인턴 김민지. 관리자: miyeongssam(최미영). 답은 한국어, 쉬운 말로.
+- 앱 화면·설치 설명에는 특정 병원 이름을 넣지 않는다(범용). 병원별 내용은 `ontology/procedures.jsonld` 같은 자료 쪽에 근거와 함께 둔다.
 
 ## 절대 규칙
 - 인계 기록은 **휴대폰 IndexedDB 안에만**, PIN 키로 암호화해서 저장한다. 서버·구글 시트·드라이브·노션·분석 도구·외부 CDN 연결을 추가하지 않는다. (`index.html`의 CSP가 외부 스크립트를 막는다 — 풀지 않는다)
@@ -20,7 +21,8 @@
 | `sw.js` | 앱 파일 오프라인 캐시(`VERSION`). 기록은 다루지 않음 |
 | `ontology/` | 의미 모델: `handoff.ttl`(OWL), `procedures.jsonld`(술기 SKOS), `context.jsonld`(앱 칸↔개념) |
 | `metadata/` | `project.jsonld`(프로젝트·근거 자료), `decisions.md`(결정 기록) |
-| `docs/` | `HANDOFF.md`(다음 할 일), `semantic-view.md`(의미 지도), `guide-for-minji.md`(안내문) |
+| `docs/` | `HANDOFF.md`(다음 할 일), `semantic-view.md`(의미 지도), `guide-for-minji.md`(안내문), `slack-announcement.md`(링크 공유 글), `worklog.md`(작업 기록) |
+| `.claude/skills/` | `handoff-app-release`(이 앱 고치기 순서), `pwa-install-guide`(**다른 레포에도 쓰는** 홈 화면 설치 가이드: SKILL.md + reference/ 모듈·CSS·8종 테스트·JSON-LD) |
 | `data/holidays-kr.json` | 공휴일 자료(근거 포함). `app.js` `HOLIDAYS`와 같아야 함 |
 | `tests/` | `e2e.cjs`(휴대폰 화면 전체 흐름·달력), `install.cjs`(휴대폰·브라우저 8종 설치 안내), `recovery.cjs`(복구 코드·PIN 잊음·v1→v2·백업 알림), `check-vocab.cjs`(태그↔온톨로지, 공휴일↔자료 파일 일치) |
 
