@@ -28,7 +28,7 @@
       ],
       "schema:runtimePlatform": "모바일 브라우저 (iOS Safari, Android Chrome), GitHub Pages",
       "schema:inLanguage": "ko",
-      "schema:version": "1.2.0",
+      "schema:version": "1.2.1",
       "dcterms:created": "2026-10-16",
       "schema:maintainer": {
         "id": "https://github.com/miyeongssam",
@@ -108,12 +108,13 @@
         "hos:customDomain": null,
         "hos:firstDeployed": "2026-10-16",
         "hos:mergeCommit": "13c5bc4",
-        "hos:phoneCheck": "2026-10-16 미영쌤 휴대폰에서 열림 확인"
+        "hos:phoneCheck": "2026-10-16 미영쌤 휴대폰(안드로이드)에서 1.2.0 설치·열림 확인"
       },
       "hos:worklog": {
         "id": "metadata/worklog.jsonld"
       },
-      "hos:manifestId": "https://miyeongssam.github.io/kim-minji/?app=handoff"
+      "hos:manifestId": "https://miyeongssam.github.io/kim-minji/?app=handoff",
+      "hos:vaultFormat": "v2 (DEK + PIN 감싸기 + 복구 코드 감싸기)"
     },
     {
       "id": "src:intern-orientation-2026",

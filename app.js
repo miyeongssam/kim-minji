@@ -6,7 +6,7 @@
  */
 'use strict';
 (() => {
-  const APP_VERSION = '1.2.0';
+  const APP_VERSION = '1.2.1';
   const BACKUP_FORMAT = 'kim-minji/handoff-backup';
   const CONTEXT_URL = 'https://miyeongssam.github.io/kim-minji/ontology/context.jsonld';
   const PBKDF2_ITER = 250000;
@@ -160,6 +160,56 @@
     return JSON.parse(td.decode(pt));
   }
 
+  // ---------------------------------------------------------------- 열쇠 구조 (vault v2)
+  // 기록은 무작위 데이터 키(DEK)로 잠그고, DEK는 PIN 열쇠와 복구 코드 열쇠로 각각 감싸 둔다.
+  // PIN을 잊어도 복구 코드로 DEK를 꺼내 새 PIN으로 다시 감쌀 수 있다. 서버는 없다.
+  //   vault = { v: 2, pin: 감싼DEK, rec: 감싼DEK|null, iv, ct }   (v1 = PIN 열쇠로 바로 잠근 옛 모양, 열 때 v2로 옮긴다)
+  const RECOVERY_ITER = 100000;
+  const RC_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // 헷갈리는 0·O·1·I 뺌, 32글자 × 20자리 = 100비트
+  const importDek = (raw) => crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  async function wrapDek(raw, secret, iter) {
+    const salt = randomBytes(16);
+    const iv = randomBytes(12);
+    const k = await deriveKey(secret, salt, iter);
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, raw);
+    return { salt: toB64(salt), iter, iv: toB64(iv), ct: toB64(ct) };
+  }
+  async function unwrapDek(secret, w) {
+    const k = await deriveKey(secret, fromB64(w.salt), w.iter);
+    return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(w.iv) }, k, fromB64(w.ct)));
+  }
+  function newRecoveryCode() {
+    let c = '';
+    for (const b of randomBytes(20)) c += RC_ALPHABET[b & 31];
+    return c.match(/.{4}/g).join('-');
+  }
+  const normCode = (c) => String(c || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+
+  // PIN으로 열기. 옛 모양(v1)이면 v2로 옮겨 담는다(복구 코드는 열고 난 뒤 만든다).
+  async function openWithPin(pin) {
+    const v = S.vault;
+    if (v.v === 2) {
+      const raw = await unwrapDek(pin, v.pin);
+      const key = await importDek(raw);
+      const data = await decryptJSON(key, v.iv, v.ct);
+      S.dekRaw = raw;
+      S.key = key;
+      S.data = normalizeData(data);
+      return;
+    }
+    const k1 = await deriveKey(pin, fromB64(v.salt), v.iter);
+    const data = await decryptJSON(k1, v.iv, v.ct);
+    S.dekRaw = randomBytes(32);
+    S.key = await importDek(S.dekRaw);
+    S.data = normalizeData(data);
+    S.vault = { v: 2, pin: await wrapDek(S.dekRaw, pin, PBKDF2_ITER), rec: null };
+    await save();
+  }
+  async function lockoutMessage() {
+    const lo = (await kvGet('lockout')) || { fails: 0, until: 0 };
+    return Date.now() < lo.until ? `잠시 후 다시 시도하세요 (${Math.ceil((lo.until - Date.now()) / 1000)}초)` : '';
+  }
+
   // ---------------------------------------------------------------- 데이터 모양 맞추기
   function normalizeEntry(e) {
     if (!e || typeof e !== 'object' || !isDate(e.date)) return null;
@@ -189,7 +239,8 @@
       entries: (Array.isArray(o.entries) ? o.entries : []).map(normalizeEntry).filter(Boolean),
       settings: {
         lockMin: LOCK_OPTIONS.some(([v]) => v === st.lockMin) ? st.lockMin : 3,
-        lastBackupAt: Number(st.lastBackupAt) || 0
+        lastBackupAt: Number(st.lastBackupAt) || 0,
+        remindSnoozeUntil: Number(st.remindSnoozeUntil) || 0
       },
       draft: o.draft && typeof o.draft === 'object' ? o.draft : null
     };
@@ -200,11 +251,11 @@
   function save() {
     const snapshot = clone(S.data);
     const key = S.key;
-    const { salt, iter } = S.vault;
+    const { pin, rec } = S.vault;
     saveChain = saveChain
       .then(async () => {
         const { iv, ct } = await encryptJSON(key, snapshot);
-        const vault = { v: 1, salt, iter, iv, ct };
+        const vault = { v: 2, pin, rec, iv, ct };
         await kvSet('vault', vault);
         S.vault = vault;
       })
@@ -226,8 +277,7 @@
     if (!/^\d{4,8}$/.test(pin)) return false;
     await saveChain;
     try {
-      const key = await deriveKey(pin, fromB64(S.vault.salt), S.vault.iter);
-      await decryptJSON(key, S.vault.iv, S.vault.ct);
+      await unwrapDek(pin, S.vault.pin);
       return true;
     } catch {
       return false;
@@ -265,14 +315,16 @@
           <h1>인계장</h1>
           <p class="muted">${setup ? '처음 쓰시는군요. 앱을 잠글 PIN(숫자 4~8자리)을 정해 주세요.' : 'PIN을 입력하세요'}</p>
           <form id="lockForm" autocomplete="off">
-            <input id="pin1" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="PIN" aria-label="PIN" autocomplete="off">
-            ${setup ? '<input id="pin2" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="PIN 한 번 더" aria-label="PIN 한 번 더" autocomplete="off">' : ''}
+            <input id="pin1" class="pin-input" type="text" data-secret autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="PIN" aria-label="PIN">
+            ${setup ? '<input id="pin2" class="pin-input" type="text" data-secret autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="PIN 한 번 더" aria-label="PIN 한 번 더">' : ''}
             <button class="btn primary block" type="submit">${setup ? '시작하기' : '열기'}</button>
           </form>
           <p class="err" id="lockErr">${esc(message || '')}</p>
+          ${setup ? '' : '<button type="button" class="btn ghost small" data-action="forgot-pin">PIN을 잊었어요</button>'}
           ${setup ? `<div class="notice">
             · 기록은 이 휴대폰 안에만 암호화되어 저장돼요. 인터넷으로 나가지 않아요.<br>
-            · PIN을 잊으면 아무도 복구할 수 없어요. 설정에서 백업을 해 두세요.<br>
+            · PIN을 정하면 복구 코드를 한 번 보여 드려요. 종이에 적어 두면 PIN을 잊어도 열 수 있어요.<br>
+            · PIN은 구글 비밀번호 관리자에 저장하지 마세요.<br>
             · 꼭 홈 화면 앱으로 설치해서 쓰세요.
           </div>` : ''}
         </div>
@@ -280,7 +332,7 @@
     const form = $('#lockForm');
     const pin1 = $('#pin1');
     const err = $('#lockErr');
-    setTimeout(() => pin1.focus(), 60);
+    setTimeout(() => pin1?.focus(), 60);
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const btn = $('button[type=submit]', form);
@@ -294,26 +346,23 @@
       err.textContent = '확인 중…';
       try {
         if (setup) {
-          const salt = randomBytes(16);
-          S.key = await deriveKey(p1, salt, PBKDF2_ITER);
-          S.vault = { v: 1, salt: toB64(salt), iter: PBKDF2_ITER };
+          S.dekRaw = randomBytes(32);
+          S.key = await importDek(S.dekRaw);
+          S.vault = { v: 2, pin: await wrapDek(S.dekRaw, p1, PBKDF2_ITER), rec: null };
           S.data = normalizeData({});
           await save();
           await resetFails();
           try { await navigator.storage?.persist?.(); } catch { /* 지원하지 않는 브라우저 */ }
           afterUnlock();
         } else {
-          const lo = (await kvGet('lockout')) || { fails: 0, until: 0 };
-          if (Date.now() < lo.until) {
-            err.textContent = `잠시 후 다시 시도하세요 (${Math.ceil((lo.until - Date.now()) / 1000)}초)`;
+          const wait = await lockoutMessage();
+          if (wait) {
+            err.textContent = wait;
             btn.disabled = false;
             return;
           }
           try {
-            const key = await deriveKey(p1, fromB64(S.vault.salt), S.vault.iter);
-            const data = await decryptJSON(key, S.vault.iv, S.vault.ct);
-            S.key = key;
-            S.data = normalizeData(data);
+            await openWithPin(p1);
             await resetFails();
             afterUnlock();
           } catch {
@@ -333,7 +382,7 @@
     });
   }
 
-  function afterUnlock() {
+  async function afterUnlock() {
     S.lastActive = Date.now();
     const d = S.data.draft;
     if (d && d.resume) {
@@ -341,6 +390,8 @@
       history.replaceState(null, '', d.id ? `#/edit/${d.id}` : `#/new/${isDate(d.form?.date) ? d.form.date : todayStr()}`);
     }
     route();
+    if (S.key && !S.vault.rec) await createRecovery();
+    if (S.key && backupDue()) await backupReminder();
   }
 
   async function lock() {
@@ -352,6 +403,8 @@
     }
     await saveChain;
     S.key = null;
+    S.dekRaw?.fill(0);
+    S.dekRaw = null;
     S.data = null;
     S.backupBlob = null;
     renderLock();
@@ -359,7 +412,7 @@
 
   // ---------------------------------------------------------------- 대화 상자
   function closeModals() { $$('.modal-wrap').forEach((m) => m.remove()); }
-  function openModal(inner, onMount) {
+  function openModal(inner, onMount, { sticky = false } = {}) {
     return new Promise((resolve) => {
       const wrap = document.createElement('div');
       wrap.className = 'modal-wrap';
@@ -367,7 +420,7 @@
       document.body.appendChild(wrap);
       const close = (v) => { wrap.remove(); resolve(v); };
       wrap.addEventListener('click', (e) => {
-        if (e.target === wrap || e.target.closest('[data-m=cancel]')) close(null);
+        if ((e.target === wrap && !sticky) || e.target.closest('[data-m=cancel]')) close(null);
       });
       onMount?.(wrap, close);
     });
@@ -387,7 +440,7 @@
       <h2>PIN 확인</h2>
       <p class="muted small">${esc(message)}</p>
       <form class="m-form" autocomplete="off">
-        <input class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" aria-label="PIN" autocomplete="off">
+        <input class="pin-input" type="text" data-secret autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" maxlength="8" aria-label="PIN">
         <p class="err"></p>
         <div class="m-btns">
           <button type="button" class="btn" data-m="cancel">취소</button>
@@ -397,7 +450,7 @@
       const input = $('input', w);
       const err = $('.err', w);
       const btn = $('[type=submit]', w);
-      setTimeout(() => input.focus(), 60);
+      setTimeout(() => input?.focus(), 60);
       $('form', w).addEventListener('submit', async (e) => {
         e.preventDefault();
         btn.disabled = true;
@@ -749,7 +802,7 @@
     body.addEventListener('input', grow);
     grow();
     $('#editForm').addEventListener('input', scheduleDraft);
-    if (!existing && !restored) setTimeout(() => $(f.ward ? '#fBed' : '#fWard').focus(), 80);
+    if (!existing && !restored) setTimeout(() => $(f.ward ? '#fBed' : '#fWard')?.focus(), 80);
   }
   function collectForm() {
     const todos = $$('#todoList .todo-row')
@@ -820,7 +873,7 @@
     q.addEventListener('input', () => { S.q = q.value; renderResults(); });
     $('#openOnly').addEventListener('change', (e) => { S.openOnly = e.target.checked; renderResults(); });
     renderResults();
-    if (!S.q) setTimeout(() => q.focus(), 80);
+    if (!S.q) setTimeout(() => q?.focus(), 80);
   }
   function renderResults() {
     const box = $('#results');
@@ -848,7 +901,7 @@
   // ---------------------------------------------------------------- 설정
   function viewSettings() {
     const st = S.data.settings;
-    const canShare = !!(navigator.canShare && window.File && (() => { try { return navigator.canShare({ files: [new File(['x'], 'x.json', { type: 'application/json' })] }); } catch { return false; } })());
+    const canShare = canShareFiles();
     const standalone = isStandalone();
     shell({
       title: '설정',
@@ -872,21 +925,28 @@
           </select>
           <form id="pinForm" autocomplete="off">
             <label class="f">PIN 바꾸기</label>
-            <input class="in" id="pinOld" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="지금 PIN" aria-label="지금 PIN">
+            <input class="in" id="pinOld" type="text" data-secret autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="지금 PIN" aria-label="지금 PIN">
             <div class="two m-top">
-              <input class="in" id="pinNew" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="새 PIN (4~8자리)" aria-label="새 PIN">
-              <input class="in" id="pinNew2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="새 PIN 한 번 더" aria-label="새 PIN 한 번 더">
+              <input class="in" id="pinNew" type="text" data-secret autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="새 PIN (4~8자리)" aria-label="새 PIN">
+              <input class="in" id="pinNew2" type="text" data-secret autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="새 PIN 한 번 더" aria-label="새 PIN 한 번 더">
             </div>
             <div class="row"><button type="submit" class="btn grow">PIN 바꾸기</button></div>
           </form>
         </section>
 
         <section class="sec">
+          <h2>🔑 복구 코드</h2>
+          <p class="small muted">${S.vault.rec ? `있음 (만든 날 ${esc(fmtStamp(S.vault.rec.createdAt || 0))})` : '없음'} · PIN을 잊었을 때 잠금 화면 「PIN을 잊었어요」에서 써요.</p>
+          <div class="row"><button type="button" class="btn grow" data-action="renew-recovery">복구 코드 새로 만들기</button></div>
+          <p class="small muted">새로 만들면 예전 복구 코드는 쓸 수 없어요.</p>
+        </section>
+
+        <section class="sec">
           <h2>💾 백업 내보내기</h2>
           <p class="small muted">마지막 백업: ${st.lastBackupAt ? esc(fmtStamp(st.lastBackupAt)) : '없음'} · 기록 ${S.data.entries.length}건</p>
           <form id="exportForm" autocomplete="off">
-            <input class="in" id="expPw" type="password" placeholder="백업 비밀번호 (6자 이상)" aria-label="백업 비밀번호" autocomplete="new-password">
-            <input class="in m-top" id="expPw2" type="password" placeholder="비밀번호 한 번 더" aria-label="백업 비밀번호 한 번 더" autocomplete="new-password">
+            <input class="in" id="expPw" type="text" data-secret autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="백업 비밀번호 (6자 이상)" aria-label="백업 비밀번호">
+            <input class="in m-top" id="expPw2" type="text" data-secret autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="비밀번호 한 번 더" aria-label="백업 비밀번호 한 번 더">
             <div class="row"><button type="submit" class="btn primary grow">🔐 잠긴 백업 파일 만들기</button></div>
           </form>
           <div id="exportReady" class="export-ready" hidden>
@@ -908,7 +968,7 @@
           <h2>📥 백업 가져오기</h2>
           <form id="importForm" autocomplete="off">
             <input class="in" id="impFile" type="file" accept=".json,application/json" aria-label="백업 파일" data-action="pick-file">
-            <input class="in m-top" id="impPw" type="password" placeholder="백업 비밀번호" aria-label="백업 비밀번호" autocomplete="off">
+            <input class="in m-top" id="impPw" type="text" data-secret autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="백업 비밀번호" aria-label="백업 비밀번호">
             <div class="row">
               <button type="submit" class="btn primary grow" data-mode="merge">합치기</button>
               <button type="submit" class="btn grow" data-mode="replace">바꾸기</button>
@@ -952,9 +1012,7 @@
       return;
     }
     await resetFails();
-    const salt = randomBytes(16);
-    S.key = await deriveKey(p1, salt, PBKDF2_ITER);
-    S.vault = { v: 1, salt: toB64(salt), iter: PBKDF2_ITER };
+    S.vault = { ...S.vault, pin: await wrapDek(S.dekRaw, p1, PBKDF2_ITER) };
     await save();
     $('#pinForm').reset();
     toast('PIN을 바꿨어요');
@@ -969,20 +1027,7 @@
     btn.disabled = true;
     btn.textContent = '만드는 중…';
     try {
-      const salt = randomBytes(16);
-      const key = await deriveKey(pw, salt, PBKDF2_ITER);
-      const payload = {
-        '@context': CONTEXT_URL,
-        '@type': 'HandoffBackup',
-        appVersion: APP_VERSION,
-        exportedAt: new Date().toISOString(),
-        entries: S.data.entries
-      };
-      const { iv, ct } = await encryptJSON(key, payload);
-      const file = { format: BACKUP_FORMAT, version: 1, kdf: 'PBKDF2-SHA256', iter: PBKDF2_ITER, cipher: 'AES-256-GCM', salt: toB64(salt), iv, ct };
-      const d = new Date();
-      S.backupName = `handoff-backup_${ymd(d).replace(/-/g, '')}_${pad(d.getHours())}${pad(d.getMinutes())}.json`;
-      S.backupBlob = new Blob([JSON.stringify(file)], { type: 'application/json' });
+      await buildBackup(pw);
       $('#exportForm').reset();
       $('#expName').textContent = S.backupName;
       $('#exportReady').hidden = false;
@@ -993,6 +1038,23 @@
       btn.textContent = '🔐 잠긴 백업 파일 만들기';
     }
   }
+  async function buildBackup(pw) {
+    const salt = randomBytes(16);
+    const key = await deriveKey(pw, salt, PBKDF2_ITER);
+    const payload = {
+      '@context': CONTEXT_URL,
+      '@type': 'HandoffBackup',
+      appVersion: APP_VERSION,
+      exportedAt: new Date().toISOString(),
+      entries: S.data.entries
+    };
+    const { iv, ct } = await encryptJSON(key, payload);
+    const file = { format: BACKUP_FORMAT, version: 1, kdf: 'PBKDF2-SHA256', iter: PBKDF2_ITER, cipher: 'AES-256-GCM', salt: toB64(salt), iv, ct };
+    const d = new Date();
+    S.backupName = `handoff-backup_${ymd(d).replace(/-/g, '')}_${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+    S.backupBlob = new Blob([JSON.stringify(file)], { type: 'application/json' });
+  }
+  const canShareFiles = () => !!(navigator.canShare && window.File && (() => { try { return navigator.canShare({ files: [new File(['x'], 'x.json', { type: 'application/json' })] }); } catch { return false; } })());
   function markBackedUp() {
     S.data.settings.lastBackupAt = Date.now();
     save();
@@ -1064,6 +1126,203 @@
       toast(`합쳤어요: 새로 ${added}건, 바뀜 ${updated}건`);
     }
     viewSettings();
+  }
+
+  // ---------------------------------------------------------------- 복구 코드
+  async function createRecovery(intro) {
+    const code = newRecoveryCode();
+    S.vault = { ...S.vault, rec: { ...(await wrapDek(S.dekRaw, normCode(code), RECOVERY_ITER)), createdAt: Date.now() } };
+    await save();
+    await showRecoveryCode(code, intro);
+  }
+  function showRecoveryCode(code, intro) {
+    S.externalUntil = Date.now() + 15 * 60e3; // 적는 동안·메일 앱을 오가는 동안 잠기지 않게
+    const body = `인계장 복구 코드: ${code}\n\nPIN을 잊었을 때 인계장 잠금 화면의 「PIN을 잊었어요」에서 입력하세요.\n이 코드만으로는 기록을 볼 수 없어요. 기록은 휴대폰 안에만 있어요.\n${APP_URL}`;
+    return openModal(`
+      <h2>🔑 복구 코드</h2>
+      <p class="m-msg">${esc(intro || 'PIN을 잊었을 때 이 코드로 앱을 열고 새 PIN을 정할 수 있어요.')} <b>지금 한 번만 보여요.</b></p>
+      <input class="in rc-code" id="rcShow" readonly value="${esc(code)}" aria-label="복구 코드">
+      <div class="row">
+        <button type="button" class="btn grow" data-rc="copy">📋 복사</button>
+        <button type="button" class="btn grow" data-rc="mail">✉️ 메일로 보내기</button>
+      </div>
+      <div class="notice warn">
+        · <b>종이에 적어 안전한 곳에</b> 두는 게 가장 안전해요.<br>
+        · 메일로 보냈다면: 같은 휴대폰에 지메일이 로그인돼 있으면 덜 안전해요. 가능하면 종이에도 적으세요.<br>
+        · 같은 휴대폰 메모장에는 적지 마세요.<br>
+        · 이 코드만으로는 기록을 볼 수 없어요. 기록은 이 휴대폰 안에만 있어요.
+      </div>
+      <label class="check"><input type="checkbox" id="rcOk"> 종이에 적었거나 메일로 보냈어요</label>
+      <div class="m-btns"><button type="button" class="btn primary" data-rc="done" disabled>확인</button></div>`, (w, close) => {
+      const ok = $('#rcOk', w);
+      const done = $('[data-rc=done]', w);
+      ok.addEventListener('change', () => { done.disabled = !ok.checked; });
+      w.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-rc]');
+        if (!b) return;
+        if (b.dataset.rc === 'copy') copyText(code, $('#rcShow', w)).then((r) => toast(r ? '복사했어요' : '코드를 길게 눌러 복사하세요'));
+        if (b.dataset.rc === 'mail') {
+          S.externalUntil = Date.now() + 15 * 60e3;
+          location.href = `mailto:?subject=${encodeURIComponent('[인계장] 복구 코드')}&body=${encodeURIComponent(body)}`;
+        }
+        if (b.dataset.rc === 'done' && ok.checked) { S.externalUntil = 0; close(true); }
+      });
+    }, { sticky: true });
+  }
+  async function renewRecovery() {
+    if (!(await askPin('복구 코드를 새로 만들려면 PIN을 입력하세요.'))) return;
+    await createRecovery('새 복구 코드예요. 예전 복구 코드는 이제 쓸 수 없어요.');
+    viewSettings();
+  }
+
+  // ---------------------------------------------------------------- PIN을 잊었어요
+  async function forgotPin() {
+    const hasRec = !!(S.vault && S.vault.v === 2 && S.vault.rec);
+    const r = await openModal(`
+      <h2>PIN을 잊었어요</h2>
+      ${hasRec ? `<p class="m-msg">복구 코드를 입력하면 기록은 그대로 두고 새 PIN을 정할 수 있어요.</p>
+      <form class="m-form" autocomplete="off">
+        <input class="in rc-input" id="rcIn" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocapitalize="characters" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="복구 코드">
+        <p class="err"></p>
+        <button type="submit" class="btn primary block">복구 코드로 열기</button>
+      </form>` : '<p class="m-msg">이 앱에는 아직 복구 코드가 없어요.</p>'}
+      <div class="notice">복구 코드도 없다면: 모든 기록을 지우고 새로 시작한 뒤, <b>설정 → 백업 가져오기</b>로 마지막 백업을 되살릴 수 있어요.</div>
+      <div class="m-btns">
+        <button type="button" class="btn" data-m="cancel">닫기</button>
+        <button type="button" class="btn danger" data-wipe>모두 지우고 새로 시작</button>
+      </div>`, (w, close) => {
+      $('[data-wipe]', w).addEventListener('click', () => close('wipe'));
+      const f = $('form', w);
+      if (!f) return;
+      const input = $('#rcIn', w);
+      const err = $('.err', w);
+      const btn = $('[type=submit]', w);
+      setTimeout(() => input?.focus(), 60);
+      f.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const wait = await lockoutMessage();
+        if (wait) { err.textContent = wait; return; }
+        btn.disabled = true;
+        err.textContent = '확인 중…';
+        try {
+          const raw = await unwrapDek(normCode(input.value), S.vault.rec);
+          await resetFails();
+          close({ raw });
+        } catch {
+          const fl = await registerFail();
+          err.textContent = fl.fails >= MAX_FAILS ? '여러 번 틀렸어요. 잠시 후 다시 시도하세요' : `복구 코드가 맞지 않아요 (${fl.fails}/${MAX_FAILS})`;
+          btn.disabled = false;
+        }
+      });
+    });
+    if (r === 'wipe') return wipeFromLock();
+    if (!r || !r.raw) return;
+    S.dekRaw = r.raw;
+    S.key = await importDek(r.raw);
+    S.data = normalizeData(await decryptJSON(S.key, S.vault.iv, S.vault.ct));
+    await setNewPin();
+    afterUnlock();
+  }
+  function setNewPin() {
+    return openModal(`
+      <h2>새 PIN 정하기</h2>
+      <p class="m-msg">복구 코드로 열었어요. 기록은 그대로예요. 새 PIN(숫자 4~8자리)을 정해 주세요.</p>
+      <form class="m-form" autocomplete="off">
+        <input class="pin-input" id="np1" type="text" data-secret inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="새 PIN" aria-label="새 PIN" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input class="pin-input" id="np2" type="text" data-secret inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="새 PIN 한 번 더" aria-label="새 PIN 한 번 더" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <p class="err"></p>
+        <button type="submit" class="btn primary block">새 PIN으로 시작</button>
+      </form>`, (w, close) => {
+      const err = $('.err', w);
+      setTimeout(() => $('#np1', w)?.focus(), 60);
+      $('form', w).addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const p1 = $('#np1', w).value.trim();
+        if (!/^\d{4,8}$/.test(p1)) { err.textContent = 'PIN은 숫자 4~8자리예요'; return; }
+        if (p1 !== $('#np2', w).value.trim()) { err.textContent = '두 PIN이 서로 달라요'; return; }
+        err.textContent = '저장 중…';
+        S.vault = { ...S.vault, pin: await wrapDek(S.dekRaw, p1, PBKDF2_ITER) };
+        await save();
+        toast('새 PIN으로 바꿨어요');
+        close(true);
+      });
+    }, { sticky: true });
+  }
+  async function wipeFromLock() {
+    const ok = await openModal(`
+      <h2>⚠️ 모두 지우고 새로 시작</h2>
+      <p class="m-msg">PIN과 이 휴대폰의 인계 기록이 <b>모두 지워져요.</b> 되돌릴 수 없어요.<br>백업 파일이 있으면 새 PIN을 정한 뒤 <b>설정 → 백업 가져오기</b>로 되살릴 수 있어요.</p>
+      <label class="f" for="wipeWord">확인하려면 <b>모두 지우기</b>라고 입력하세요</label>
+      <input class="in" id="wipeWord" autocomplete="off" aria-label="확인 글자">
+      <div class="m-btns">
+        <button type="button" class="btn" data-m="cancel">취소</button>
+        <button type="button" class="btn danger" data-ok disabled>모두 지우기</button>
+      </div>`, (w, close) => {
+      const input = $('#wipeWord', w);
+      const okBtn = $('[data-ok]', w);
+      input.addEventListener('input', () => { okBtn.disabled = input.value.trim() !== '모두 지우기'; });
+      okBtn.addEventListener('click', () => close(true));
+    });
+    if (!ok) return;
+    await kvDel('vault');
+    await kvDel('lockout');
+    S.vault = null;
+    history.replaceState(null, '', '#/');
+    renderLock('모든 기록을 지웠어요. 새 PIN을 정한 뒤 설정 → 백업 가져오기로 되살리세요.');
+  }
+
+  // ---------------------------------------------------------------- 백업 알림
+  // 백업한 지 7일이 지났으면(한 번도 안 했으면 첫 기록 하루 뒤부터) 앱을 열 때 「지금 백업할까요?」. 「나중에」는 하루 미룸.
+  function backupDue() {
+    const d = S.data;
+    if (!d.entries.length || Date.now() < d.settings.remindSnoozeUntil) return false;
+    if (d.settings.lastBackupAt) return Date.now() - d.settings.lastBackupAt > BACKUP_REMIND_DAYS * 864e5;
+    return Date.now() - Math.min(...d.entries.map((e) => e.createdAt)) > 864e5;
+  }
+  async function backupReminder() {
+    const lb = S.data.settings.lastBackupAt;
+    const share = canShareFiles();
+    const r = await openModal(`
+      <h2>💾 지금 백업할까요?</h2>
+      <p class="m-msg">마지막 백업: <b>${lb ? esc(fmtStamp(lb)) : '없음'}</b><br>PIN을 잊거나 휴대폰을 바꿔도 백업 파일로 되살릴 수 있어요.</p>
+      <form class="m-form" autocomplete="off">
+        <input class="in" id="bpw1" type="text" data-secret placeholder="백업 비밀번호 (6자 이상)" aria-label="백업 비밀번호" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input class="in" id="bpw2" type="text" data-secret placeholder="비밀번호 한 번 더" aria-label="백업 비밀번호 한 번 더" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <p class="err"></p>
+        <button type="submit" class="btn primary block">🔐 잠긴 백업 파일 만들기</button>
+      </form>
+      <div class="export-ready" hidden>
+        <p class="small"><b class="bname"></b> 파일을 만들었어요.</p>
+        <div class="row">
+          <button type="button" class="btn grow" data-b="save">휴대폰에 저장</button>
+          ${share ? '<button type="button" class="btn grow" data-b="share">보내기(공유)</button>' : ''}
+        </div>
+      </div>
+      <p class="small muted">비밀번호는 파일과 같은 메시지로 보내지 말고 말로 따로 알려 주세요.</p>
+      <div class="m-btns"><button type="button" class="btn" data-m="cancel">나중에 (내일 다시)</button></div>`, (w, close) => {
+      const err = $('.err', w);
+      $('form', w).addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pw = $('#bpw1', w).value;
+        if (pw.length < 6) { err.textContent = '백업 비밀번호는 6자 이상이어야 해요'; return; }
+        if (pw !== $('#bpw2', w).value) { err.textContent = '비밀번호 두 개가 서로 달라요'; return; }
+        err.textContent = '만드는 중…';
+        await buildBackup(pw);
+        err.textContent = '';
+        $('form', w).hidden = true;
+        $('.bname', w).textContent = S.backupName;
+        $('.export-ready', w).hidden = false;
+      });
+      w.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-b]');
+        if (b?.dataset.b === 'save') { exportSave(); close('done'); }
+        if (b?.dataset.b === 'share') { exportShare(); close('done'); }
+      });
+    });
+    if (r !== 'done' && S.data) {
+      S.data.settings.remindSnoozeUntil = Date.now() + 864e5;
+      save();
+    }
   }
 
   async function wipeAll() {
@@ -1179,6 +1438,8 @@
       viewEdit(id || null, id ? undefined : S.curDate);
     },
     'install-help': () => installHelp(),
+    'forgot-pin': () => forgotPin(),
+    'renew-recovery': () => renewRecovery(),
     'skip-install': () => { S.skipInstall = true; renderLock(); },
     'export-save': () => exportSave(),
     'export-share': () => exportShare(),

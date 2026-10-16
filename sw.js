@@ -1,5 +1,5 @@
 // 인계장 서비스 워커: 앱 파일만 캐시한다. 인계 기록은 IndexedDB에 암호화되어 있고 여기서 다루지 않는다.
-const VERSION = '1.2.0';
+const VERSION = '1.2.1';
 const CACHE = 'handoff-' + VERSION;
 const ASSETS = [
   './',

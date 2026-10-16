@@ -7,6 +7,8 @@
 - 환자 이름·등록번호·생년월일·사진 칸을 만들지 않는다 (`hos:ProhibitedField`).
 - 실제 인계 내용, 실제 백업 파일, 개인 연락처를 저장소에 커밋하지 않는다. 테스트는 가짜 기록만.
 - 백업은 비밀번호 없이는 만들거나 열 수 없어야 한다. 글로 복사는 PIN 재확인 후에만.
+- 저장 모양은 vault v2: 무작위 데이터 키(DEK)로 기록을 잠그고, DEK를 PIN 열쇠·복구 코드 열쇠로 각각 감싼다. PIN·복구 코드·DEK를 그대로(평문) 저장하거나 밖으로 보내는 코드를 만들지 않는다. 옛 v1은 열 때 v2로 옮긴다(`openWithPin`).
+- PIN·비밀번호 칸은 `type="password"`를 쓰지 않는다(구글 비밀번호 관리자 저장 방지). `type="text" data-secret` + `autocomplete="off"`.
 - 사용자(민지·미영쌤)가 "만들어", "수정해", "시작해"라고 하기 전에는 계획만 보여 준다. 선택지는 번호와 추천안 표시.
 
 ## 파일 지도
@@ -20,7 +22,7 @@
 | `metadata/` | `project.jsonld`(프로젝트·근거 자료), `decisions.md`(결정 기록) |
 | `docs/` | `HANDOFF.md`(다음 할 일), `semantic-view.md`(의미 지도), `guide-for-minji.md`(안내문) |
 | `data/holidays-kr.json` | 공휴일 자료(근거 포함). `app.js` `HOLIDAYS`와 같아야 함 |
-| `tests/` | `e2e.cjs`(휴대폰 화면 전체 흐름·달력), `install.cjs`(휴대폰·브라우저 8종 설치 안내), `check-vocab.cjs`(태그↔온톨로지, 공휴일↔자료 파일 일치) |
+| `tests/` | `e2e.cjs`(휴대폰 화면 전체 흐름·달력), `install.cjs`(휴대폰·브라우저 8종 설치 안내), `recovery.cjs`(복구 코드·PIN 잊음·v1→v2·백업 알림), `check-vocab.cjs`(태그↔온톨로지, 공휴일↔자료 파일 일치) |
 
 ## 해마다 할 일
 - 매년 6월 말 우주항공청이 다음 해 월력요항을 발표하면 `app.js` `HOLIDAYS`·`HOLIDAY_YEARS`와 `data/holidays-kr.json`에 다음 해 공휴일을 추가한다. 날짜는 공식 발표로 확인하고 지어내지 않는다. 임시공휴일이 새로 지정되면 그때 추가.
@@ -30,7 +32,7 @@
 2. 코드 수정. 데이터 칸을 바꾸면 `ontology/context.jsonld`·`handoff.ttl`·`docs/semantic-view.md` 표도 같이. 태그를 바꾸면 `app.js`의 `TAG_SUGGESTIONS`와 `procedures.jsonld`의 `appTag`를 같이.
 3. 버전을 세 곳에서 똑같이 올리기: `app.js` `APP_VERSION`, `sw.js` `VERSION`, `index.html`의 `?v=` 두 개. (안 올리면 휴대폰에 옛 화면이 남는다)
 4. 저장된 데이터 모양이 바뀌면 `normalizeData`/`normalizeEntry`가 옛 데이터를 읽을 수 있게 한다. 옛 백업 파일도 열려야 한다.
-5. 테스트: 저장소 폴더에서 `python3 -m http.server 8765 &` → `node tests/e2e.cjs` → `node tests/install.cjs` → `node tests/check-vocab.cjs`. 셋 다 통과해야 한다.
+5. 테스트: 저장소 폴더에서 `python3 -m http.server 8765 &` → `node tests/e2e.cjs` → `node tests/install.cjs` → `node tests/recovery.cjs` → `node tests/check-vocab.cjs`. 넷 다 통과해야 한다.
    - `manifest.webmanifest`의 `id`는 바꾸지 않는다(바꾸면 휴대폰이 다른 앱으로 본다). 바꿔야 하면 이유를 ADR에 적는다.
 6. `metadata/decisions.md`에 결정 추가, `docs/HANDOFF.md` 갱신, `metadata/project.jsonld` 버전 갱신.
 7. 브랜치에 커밋 → `main`으로 PR. 합치면 GitHub Pages(`main` / root)가 자동 배포.
