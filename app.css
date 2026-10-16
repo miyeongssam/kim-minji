@@ -13,6 +13,8 @@
   --danger-soft: #fde8e6;
   --warn-soft: #fff4d6;
   --mark: #ffe58a;
+  --red-day: #d92d20;
+  --blue-day: #1d5fd1;
   --shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 2px 8px rgba(0, 0, 0, .04);
   --radius: 14px;
   --tabbar: 62px;
@@ -35,6 +37,8 @@
     --danger-soft: #3a1d1b;
     --warn-soft: #3a3115;
     --mark: #6b5a12;
+    --red-day: #f87171;
+    --blue-day: #7aa7ff;
     --shadow: none;
   }
 }
@@ -410,3 +414,58 @@ input[type=file].in { padding: 9px; }
 .tag-suggest .chip { cursor: pointer; }
 .export-ready { margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--accent-soft); }
 .empty .small { margin: 6px 0 0; }
+
+/* ---------- 한 달 달력 ---------- */
+.cal {
+  margin-bottom: 12px;
+  padding: 8px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.cal-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.cal-title {
+  position: relative;
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+}
+.cal-title input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.cal-week, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.cal-week span { padding: 4px 0; text-align: center; font-size: 12px; font-weight: 700; color: var(--muted); }
+.cal-grid { gap: 2px; touch-action: pan-y; }
+.cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 3px 1px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+.cd-n { width: 30px; height: 30px; line-height: 30px; border-radius: 50%; text-align: center; font-size: 15px; font-weight: 600; }
+.cd-h { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 9.5px; line-height: 1.25; color: var(--red-day); }
+.cd-c { min-width: 18px; padding: 0 5px; border-radius: 999px; background: var(--accent-soft); font-size: 11px; font-weight: 800; line-height: 16px; }
+.cd-c.open { background: var(--star); color: var(--bg); }
+.cal .red, .cal-day.red .cd-n { color: var(--red-day); }
+.cal .blue, .cal-day.blue .cd-n { color: var(--blue-day); }
+.cal-day.out { opacity: .35; }
+.cal-day.today .cd-n { box-shadow: inset 0 0 0 2px var(--accent); }
+.cal-day.sel { background: var(--accent-soft); }
+.cal-day.sel .cd-n { background: var(--accent); color: var(--accent-text); }
+.cal-day:active { background: var(--surface-2); }
+.cal-legend { margin: 6px 4px 2px; font-size: 11.5px; color: var(--muted); }
+.dot-open { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--star); vertical-align: -1px; }
+.sel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 6px 2px 0; }
+.sel-head h2 { margin: 0; font-size: 18px; }
+.hol { font-size: 14px; font-weight: 700; color: var(--red-day); }
+.tabs a:active { background: var(--surface-2); }

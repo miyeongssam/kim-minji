@@ -14,6 +14,8 @@ description: 인계장 PWA(kim-minji)를 고치고 내보내는 순서 — 버�
 - 데이터 칸 추가·변경 → `ontology/context.jsonld`, `ontology/handoff.ttl`, `docs/semantic-view.md` 3번 표, `normalizeEntry`.
 - 분류 태그 추가 → `app.js` `TAG_SUGGESTIONS` + `ontology/procedures.jsonld`에 개념(`id`, `prefLabel`, `broader`, `appTag`, `sourcedFrom`; 근거 미확인이면 `sourceStatus`).
 
+- 공휴일 추가(해마다 6월 월력요항 발표 뒤) → `app.js` `HOLIDAYS`·`HOLIDAY_YEARS` + `data/holidays-kr.json` (출처 `dcterms:source`도). `check-vocab.cjs`가 두 곳이 같은지, 대체공휴일이 평일인지 검사한다.
+
 ## 2. 버전 (세 곳 모두 같은 값)
 | 파일 | 위치 |
 |---|---|

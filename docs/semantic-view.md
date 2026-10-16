@@ -36,6 +36,8 @@ graph LR
 | 4 | `metadata/project.jsonld` | 프로젝트·근거 자료 메타데이터 | 버전·자료가 바뀔 때 |
 | 5 | `metadata/decisions.md` | 왜 그렇게 정했는지(결정 기록) | 중요한 결정을 할 때 |
 | 6 | `docs/HANDOFF.md` | 지금 어디까지 했고 다음에 뭘 하는지 | 작업을 멈출 때마다 |
+| 7 | `data/holidays-kr.json` | 공휴일 달력 자료(`hos:HolidayCalendar`), 근거 포함 | 매년 6월 다음 해 월력요항이 나오면 |
+| 8 | `docs/worklog.md`, `metadata/worklog.jsonld` | 작업 이력(사람용·PROV-O) | 작업이 끝날 때마다 |
 
 ## 3. 앱 데이터 칸 ↔ 개념
 

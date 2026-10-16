@@ -6,7 +6,7 @@
  */
 'use strict';
 (() => {
-  const APP_VERSION = '1.0.0';
+  const APP_VERSION = '1.1.0';
   const BACKUP_FORMAT = 'kim-minji/handoff-backup';
   const CONTEXT_URL = 'https://miyeongssam.github.io/kim-minji/ontology/context.jsonld';
   const PBKDF2_ITER = 250000;
@@ -21,6 +21,39 @@
     'PCD·PTBD·PTGBD remove', 'Sputum culture', 'T-tube change', 'CTD change', 'Enema',
     'CT·MRI keep', 'BM bx assist', '동의서', 'CPR', '사망선언', '검사 f/u', '노티'
   ];
+
+  // 공휴일 — data/holidays-kr.json 과 같아야 한다(tests/check-vocab.cjs 로 확인).
+  // 근거: 우주항공청 월력요항, 관공서의 공휴일에 관한 규정(2026.4.28 개정: 노동절·제헌절 추가). [이름, 달력 칸 표시]
+  const HOLIDAYS = {
+    '2026-01-01': ['신정', '신정'],
+    '2026-02-16': ['설날 연휴', '설 연휴'], '2026-02-17': ['설날', '설날'], '2026-02-18': ['설날 연휴', '설 연휴'],
+    '2026-03-01': ['삼일절', '삼일절'], '2026-03-02': ['삼일절 대체공휴일', '대체휴일'],
+    '2026-05-01': ['노동절', '노동절'],
+    '2026-05-05': ['어린이날', '어린이날'],
+    '2026-05-24': ['부처님오신날', '석가탄신'], '2026-05-25': ['부처님오신날 대체공휴일', '대체휴일'],
+    '2026-06-03': ['전국동시지방선거일', '지방선거'],
+    '2026-06-06': ['현충일', '현충일'],
+    '2026-07-17': ['제헌절', '제헌절'],
+    '2026-08-15': ['광복절', '광복절'], '2026-08-17': ['광복절 대체공휴일', '대체휴일'],
+    '2026-09-24': ['추석 연휴', '추석 연휴'], '2026-09-25': ['추석', '추석'], '2026-09-26': ['추석 연휴', '추석 연휴'],
+    '2026-10-03': ['개천절', '개천절'], '2026-10-05': ['개천절 대체공휴일', '대체휴일'],
+    '2026-10-09': ['한글날', '한글날'],
+    '2026-12-25': ['성탄절', '성탄절'],
+    '2027-01-01': ['신정', '신정'],
+    '2027-02-06': ['설날 연휴', '설 연휴'], '2027-02-07': ['설날', '설날'], '2027-02-08': ['설날 연휴', '설 연휴'], '2027-02-09': ['설날 대체공휴일', '대체휴일'],
+    '2027-03-01': ['삼일절', '삼일절'],
+    '2027-05-01': ['노동절', '노동절'], '2027-05-03': ['노동절 대체공휴일', '대체휴일'],
+    '2027-05-05': ['어린이날', '어린이날'],
+    '2027-05-13': ['부처님오신날', '석가탄신'],
+    '2027-06-06': ['현충일', '현충일'],
+    '2027-07-17': ['제헌절', '제헌절'], '2027-07-19': ['제헌절 대체공휴일', '대체휴일'],
+    '2027-08-15': ['광복절', '광복절'], '2027-08-16': ['광복절 대체공휴일', '대체휴일'],
+    '2027-09-14': ['추석 연휴', '추석 연휴'], '2027-09-15': ['추석', '추석'], '2027-09-16': ['추석 연휴', '추석 연휴'],
+    '2027-10-03': ['개천절', '개천절'], '2027-10-04': ['개천절 대체공휴일', '대체휴일'],
+    '2027-10-09': ['한글날', '한글날'], '2027-10-11': ['한글날 대체공휴일', '대체휴일'],
+    '2027-12-25': ['성탄절', '성탄절'], '2027-12-27': ['성탄절 대체공휴일', '대체휴일']
+  };
+  const HOLIDAY_YEARS = [2026, 2027];
 
   const app = document.getElementById('app');
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -435,8 +468,8 @@
     window.scrollTo(0, 0);
   }
   function tabLink(name, icon, label, tab) {
-    const href = name === 'day' ? `#/day/${S.curDate || todayStr()}` : `#/${name}`;
-    return `<a href="${href}" class="${tab === name ? 'on' : ''}"${tab === name ? ' aria-current="page"' : ''}><span class="ti" aria-hidden="true">${icon}</span>${label}</a>`;
+    const href = name === 'day' ? `#/day/${todayStr()}` : `#/${name}`;
+    return `<a href="${href}" class="${tab === name ? 'on' : ''}"${name === 'day' ? ' data-action="tab-day"' : ''}${tab === name ? ' aria-current="page"' : ''}><span class="ti" aria-hidden="true">${icon}</span>${label}</a>`;
   }
   function hl(text, terms) {
     text = String(text ?? '');
@@ -477,13 +510,49 @@
     shell({ title: '찾을 수 없어요', tab: 'day', back: `#/day/${S.curDate || todayStr()}`, body: '<div class="empty">이 인계는 지워졌거나 없어요.</div>' });
   }
 
-  // ---------------------------------------------------------------- 날짜별 보기
+  // ---------------------------------------------------------------- 날짜별 보기(한 달 달력 + 고른 날 목록)
+  // 일요일 시작. 달력 칸: 날짜, 공휴일 이름, 인계 건수(할 일이 남았으면 주황).
+  function monthCells(y, m) {
+    const first = new Date(y, m, 1);
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    const weeks = Math.ceil((first.getDay() + lastDay) / 7);
+    const cells = [];
+    for (let i = 0; i < weeks * 7; i++) cells.push(new Date(y, m, 1 - first.getDay() + i));
+    return cells;
+  }
+  // 달을 옮기면: 그 달에 오늘이 있으면 오늘, 아니면 1일을 고른다.
+  function monthTarget(y, m) {
+    const d = new Date(y, m, 1);
+    const t = new Date();
+    return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() ? todayStr() : ymd(d);
+  }
   function viewDay(date) {
     S.curDate = date;
+    const sel = parseDate(date);
+    const y = sel.getFullYear();
+    const m = sel.getMonth();
+    const today = todayStr();
     const list = S.data.entries.filter((e) => e.date === date);
     const counts = countByDate();
-    const chipDates = Object.keys(counts).sort().reverse().slice(0, 14);
-    const today = todayStr();
+    const openDays = new Set(S.data.entries.filter((e) => e.todos.some((t) => !t.done)).map((e) => e.date));
+    const hol = HOLIDAYS[date];
+
+    const cells = monthCells(y, m).map((d) => {
+      const ds = ymd(d);
+      const h = HOLIDAYS[ds];
+      const n = counts[ds] || 0;
+      const cls = ['cal-day'];
+      if (d.getMonth() !== m) cls.push('out');
+      if (d.getDay() === 0 || h) cls.push('red'); else if (d.getDay() === 6) cls.push('blue');
+      if (ds === today) cls.push('today');
+      if (ds === date) cls.push('sel');
+      const label = `${fmtDate(ds, true)}${h ? ' ' + h[0] : ''}${n ? ` 인계 ${n}건` : ''}`;
+      return `<button type="button" class="${cls.join(' ')}" data-action="pick-day" data-date="${ds}" aria-label="${esc(label)}"${ds === date ? ' aria-pressed="true"' : ''}>
+          <span class="cd-n">${d.getDate()}</span>
+          ${h ? `<span class="cd-h">${esc(h[1])}</span>` : ''}
+          ${n ? `<span class="cd-c ${openDays.has(ds) ? 'open' : ''}">${n}</span>` : ''}
+        </button>`;
+    }).join('');
 
     const groups = new Map();
     list.forEach((e) => {
@@ -521,17 +590,39 @@
       fab: true,
       body: `
         ${banners.join('')}
-        <div class="datebar">
-          <button type="button" class="btn icon-btn" data-action="goto" data-date="${addDays(date, -1)}" aria-label="전날">◀</button>
-          <label class="date-label">${esc(fmtDate(date, true))}
-            <input type="date" value="${date}" data-change="pick-date" aria-label="날짜 고르기">
-          </label>
-          <button type="button" class="btn icon-btn" data-action="goto" data-date="${addDays(date, 1)}" aria-label="다음날">▶</button>
-          ${date !== today ? '<button type="button" class="btn small" data-action="goto" data-date="' + today + '">오늘</button>' : ''}
+        <section class="cal" aria-label="달력">
+          <div class="cal-head">
+            <button type="button" class="btn icon-btn" data-action="month" data-dir="-1" aria-label="이전 달">◀</button>
+            <label class="cal-title">${y}년 ${m + 1}월
+              <input type="month" value="${y}-${pad(m + 1)}" data-change="pick-month" aria-label="달 고르기">
+            </label>
+            <button type="button" class="btn icon-btn" data-action="month" data-dir="1" aria-label="다음 달">▶</button>
+            ${date !== today ? `<button type="button" class="btn small" data-action="goto" data-date="${today}">오늘</button>` : ''}
+          </div>
+          <div class="cal-week" aria-hidden="true"><span class="red">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="blue">토</span></div>
+          <div class="cal-grid" id="calGrid">${cells}</div>
+          <p class="cal-legend">숫자 = 인계 건수 · <span class="dot-open"></span> 남은 할 일 · <span class="red">빨간 날</span> = 일요일·공휴일${HOLIDAY_YEARS.includes(y) ? '' : ` · ${y}년 공휴일 정보는 아직 없어요`}</p>
+        </section>
+        <div class="sel-head">
+          <h2>${esc(fmtDate(date))}${hol ? ` <span class="hol">${esc(hol[0])}</span>` : ''}</h2>
+          <span class="small muted">인계 ${list.length}건</span>
         </div>
-        ${chipDates.length ? `<div class="chips" aria-label="기록이 있는 날">${chipDates.map((d) => `<a class="chip ${d === date ? 'on' : ''}" href="#/day/${d}">${esc(fmtDate(d))}<span class="n">${counts[d]}</span></a>`).join('')}</div>` : ''}
         ${content}`
     });
+
+    // 달력을 좌우로 밀면 이전·다음 달
+    const grid = $('#calGrid');
+    let sx = 0;
+    let sy = 0;
+    grid.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    grid.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        S.swiped = Date.now();
+        location.replace(`#/day/${monthTarget(y, m + (dx < 0 ? 1 : -1))}`);
+      }
+    }, { passive: true });
   }
 
   // ---------------------------------------------------------------- 인계 보기
@@ -992,7 +1083,20 @@
     lock: () => lock(),
     new: () => { location.hash = `#/new/${S.curDate || todayStr()}`; },
     open: (el) => { location.hash = `#/entry/${el.dataset.id}`; },
-    goto: (el) => { location.hash = `#/day/${el.dataset.date}`; },
+    goto: (el) => { location.replace(`#/day/${el.dataset.date}`); },
+    'pick-day': (el) => {
+      if (Date.now() - (S.swiped || 0) < 400) return;
+      if (el.dataset.date !== S.curDate) location.replace(`#/day/${el.dataset.date}`);
+    },
+    month: (el) => {
+      const d = parseDate(S.curDate || todayStr());
+      location.replace(`#/day/${monthTarget(d.getFullYear(), d.getMonth() + Number(el.dataset.dir))}`);
+    },
+    'tab-day': (el, ev) => {
+      ev.preventDefault();
+      const target = `#/day/${todayStr()}`;
+      if (location.hash === target) { viewDay(todayStr()); window.scrollTo({ top: 0, behavior: 'smooth' }); } else location.hash = target;
+    },
     'copy-day': () => {
       const list = S.data.entries.filter((e) => e.date === S.curDate)
         .sort((a, b) => ((a.ward === '') - (b.ward === '')) || coll.compare(a.ward, b.ward) || sortInGroup(a, b));
@@ -1078,7 +1182,10 @@
     const kind = el.dataset.change;
     if (el.id === 'impFile') S.externalUntil = 0;
     if (!kind) return;
-    if (kind === 'pick-date' && isDate(el.value)) location.hash = `#/day/${el.value}`;
+    if (kind === 'pick-month' && /^\d{4}-\d{2}$/.test(el.value)) {
+      const [yy, mm] = el.value.split('-').map(Number);
+      location.replace(`#/day/${monthTarget(yy, mm - 1)}`);
+    }
     if (kind === 'lock-min') {
       S.data.settings.lockMin = Number(el.value);
       save();

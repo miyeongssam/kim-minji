@@ -11,28 +11,78 @@
     "id": "@id",
     "type": "@type",
     "label": "dcterms:title",
-    "date": { "@id": "prov:endedAtTime", "@type": "xsd:date" },
-    "by": { "@id": "prov:wasAssociatedWith", "@type": "@id", "@container": "@set" },
-    "used": { "@id": "prov:used", "@type": "@id", "@container": "@set" },
-    "generated": { "@id": "prov:generated", "@container": "@set" },
-    "after": { "@id": "prov:wasInformedBy", "@type": "@id" },
+    "date": {
+      "@id": "prov:endedAtTime",
+      "@type": "xsd:date"
+    },
+    "by": {
+      "@id": "prov:wasAssociatedWith",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "used": {
+      "@id": "prov:used",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "generated": {
+      "@id": "prov:generated",
+      "@container": "@set"
+    },
+    "after": {
+      "@id": "prov:wasInformedBy",
+      "@type": "@id"
+    },
     "result": "hos:result",
-    "decisions": { "@id": "hos:decision", "@container": "@set" },
+    "decisions": {
+      "@id": "hos:decision",
+      "@container": "@set"
+    },
     "commit": "hos:gitCommit",
-    "pr": { "@id": "hos:pullRequest", "@type": "@id" }
+    "pr": {
+      "@id": "hos:pullRequest",
+      "@type": "@id"
+    }
   },
   "@graph": [
-    { "id": "agent:miyeongssam", "type": ["prov:Agent", "schema:Person"], "schema:name": "최미영 (miyeongssam)", "schema:roleName": "저장소 관리자" },
-    { "id": "agent:minji", "type": ["prov:Agent", "schema:Person"], "schema:name": "김민지", "schema:roleName": "앱 사용자 (충북대병원 인턴)" },
-    { "id": "agent:claude-code", "type": ["prov:SoftwareAgent"], "schema:name": "Claude Code" },
-
+    {
+      "id": "agent:miyeongssam",
+      "type": [
+        "prov:Agent",
+        "schema:Person"
+      ],
+      "schema:name": "최미영 (miyeongssam)",
+      "schema:roleName": "저장소 관리자"
+    },
+    {
+      "id": "agent:minji",
+      "type": [
+        "prov:Agent",
+        "schema:Person"
+      ],
+      "schema:name": "김민지",
+      "schema:roleName": "앱 사용자 (충북대병원 인턴)"
+    },
+    {
+      "id": "agent:claude-code",
+      "type": [
+        "prov:SoftwareAgent"
+      ],
+      "schema:name": "Claude Code"
+    },
     {
       "id": "act:001-source-read",
       "type": "prov:Activity",
       "label": "인계 자료 읽기 (구글 드라이브)",
       "date": "2026-10-16",
-      "by": ["agent:claude-code"],
-      "used": ["src:intern-orientation-2026", "src:site-marking-manual", "src:im-handoff-260923"],
+      "by": [
+        "agent:claude-code"
+      ],
+      "used": [
+        "src:intern-orientation-2026",
+        "src:site-marking-manual",
+        "src:im-handoff-260923"
+      ],
       "result": "발표자료·시술부위 매뉴얼은 글자 읽음. 내과 인계장 Word(52MB)는 글자가 나오지 않음 → 구글 문서 변환 필요. 사진은 받지 못함."
     },
     {
@@ -41,9 +91,34 @@
       "label": "인계장 PWA 1.0.0 제작 + 의미 모델",
       "date": "2026-10-16",
       "after": "act:001-source-read",
-      "by": ["agent:claude-code", "agent:miyeongssam"],
-      "generated": ["index.html", "app.js", "app.css", "sw.js", "manifest.webmanifest", "ontology/", "metadata/", "docs/", "tests/", "CLAUDE.md"],
-      "decisions": ["ADR-001", "ADR-002", "ADR-003", "ADR-004", "ADR-005", "ADR-006", "ADR-007", "ADR-008", "ADR-009", "ADR-010"],
+      "by": [
+        "agent:claude-code",
+        "agent:miyeongssam"
+      ],
+      "generated": [
+        "index.html",
+        "app.js",
+        "app.css",
+        "sw.js",
+        "manifest.webmanifest",
+        "ontology/",
+        "metadata/",
+        "docs/",
+        "tests/",
+        "CLAUDE.md"
+      ],
+      "decisions": [
+        "ADR-001",
+        "ADR-002",
+        "ADR-003",
+        "ADR-004",
+        "ADR-005",
+        "ADR-006",
+        "ADR-007",
+        "ADR-008",
+        "ADR-009",
+        "ADR-010"
+      ],
       "result": "휴대폰 화면 자동 테스트 통과, 평문 저장 없음 확인",
       "commit": "16a90ba",
       "pr": "https://github.com/miyeongssam/kim-minji/pull/1"
@@ -54,8 +129,12 @@
       "label": "PR #1 합치기 + GitHub Pages 켜기",
       "date": "2026-10-16",
       "after": "act:002-build-pwa",
-      "by": ["agent:miyeongssam"],
-      "decisions": ["ADR-011"],
+      "by": [
+        "agent:miyeongssam"
+      ],
+      "decisions": [
+        "ADR-011"
+      ],
       "result": "main 합침(13c5bc4). Pages: Deploy from a branch / main / (root), Enforce HTTPS 켜짐, 커스텀 도메인 없음. 사이트 열림 확인은 휴대폰에서 할 차례.",
       "commit": "13c5bc4"
     },
@@ -65,10 +144,88 @@
       "label": "배포·작업 기록 정리 (AI 레디 기록 규칙 도입)",
       "date": "2026-10-16",
       "after": "act:003-merge-deploy",
-      "by": ["agent:claude-code"],
-      "generated": ["metadata/worklog.jsonld", "docs/worklog.md", "docs/HANDOFF.md", "metadata/project.jsonld"],
-      "decisions": ["ADR-012"],
-      "result": "작업이 끝날 때마다 사람용(md)·기계용(jsonld) 기록을 함께 남기는 규칙을 CLAUDE.md와 스킬에 넣음"
+      "by": [
+        "agent:claude-code"
+      ],
+      "generated": [
+        "metadata/worklog.jsonld",
+        "docs/worklog.md",
+        "docs/HANDOFF.md",
+        "metadata/project.jsonld"
+      ],
+      "decisions": [
+        "ADR-012"
+      ],
+      "result": "작업이 끝날 때마다 사람용(md)·기계용(jsonld) 기록을 함께 남기는 규칙을 CLAUDE.md와 스킬에 넣음",
+      "commit": "7567235",
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/2",
+      "hos:mergeCommit": "ad7f6eb"
+    },
+    {
+      "id": "act:005-phone-check",
+      "type": "prov:Activity",
+      "label": "휴대폰에서 앱 열림 확인",
+      "date": "2026-10-16",
+      "after": "act:004-records",
+      "by": [
+        "agent:miyeongssam"
+      ],
+      "result": "앱 잘 열림. 색(청록) 유지. 「날짜별」 탭 무반응 의견 → 작업 006"
+    },
+    {
+      "id": "act:006-calendar",
+      "type": "prov:Activity",
+      "label": "1.1.0 한 달 달력 + 공휴일 + 날짜별 탭 고침",
+      "date": "2026-10-16",
+      "after": "act:005-phone-check",
+      "by": [
+        "agent:claude-code",
+        "agent:minji",
+        "agent:miyeongssam"
+      ],
+      "used": [
+        "src:kasa-calendar-2026",
+        "src:kasa-calendar-2027",
+        "src:holiday-regulation-20260428"
+      ],
+      "generated": [
+        "app.js",
+        "app.css",
+        "data/holidays-kr.json",
+        "tests/check-vocab.cjs",
+        "tests/e2e.cjs"
+      ],
+      "decisions": [
+        "ADR-013",
+        "ADR-014",
+        "ADR-015"
+      ],
+      "result": "휴대폰 화면 테스트·공휴일 검사(46개, 대체공휴일 모두 평일)·밀기 테스트 통과",
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/3"
+    },
+    {
+      "id": "src:kasa-calendar-2026",
+      "type": "prov:Entity",
+      "dcterms:title": "우주항공청 2026년도 월력요항",
+      "hos:usedFor": [
+        "data/holidays-kr.json"
+      ]
+    },
+    {
+      "id": "src:kasa-calendar-2027",
+      "type": "prov:Entity",
+      "dcterms:title": "우주항공청 2027년도 월력요항 (2026-06-29 발표)",
+      "hos:usedFor": [
+        "data/holidays-kr.json"
+      ]
+    },
+    {
+      "id": "src:holiday-regulation-20260428",
+      "type": "prov:Entity",
+      "dcterms:title": "관공서의 공휴일에 관한 규정 일부개정령 (2026-04-28 국무회의 의결: 노동절·제헌절 공휴일)",
+      "hos:usedFor": [
+        "data/holidays-kr.json"
+      ]
     }
   ]
 }
