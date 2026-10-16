@@ -270,7 +270,61 @@
         "ADR-020"
       ],
       "result": "설치 안내 8종(안드로이드 크롬·아이폰 사파리·카톡 2종·슬랙·삼성 인터넷·아이폰 크롬·컴퓨터)·전체 흐름·어휘 검사 통과",
-      "pr": "https://github.com/miyeongssam/kim-minji/pull/4"
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/4",
+      "hos:mergeCommit": "2800b02"
+    },
+    {
+      "id": "act:010-recovery-qa",
+      "type": "prov:Activity",
+      "label": "휴대폰 설치 확인 + PIN 잊음·복구·자동 백업 질의응답",
+      "date": "2026-10-16",
+      "after": "act:009-install-guide",
+      "by": [
+        "agent:miyeongssam",
+        "agent:claude-code"
+      ],
+      "used": [
+        "src:phone-password-manager-screen"
+      ],
+      "decisions": [
+        "ADR-021",
+        "ADR-022",
+        "ADR-023",
+        "ADR-024",
+        "ADR-025"
+      ],
+      "result": "설치된 앱에서 PIN 칸에 구글 비밀번호 관리자 창이 뜸 → 막기로. 본인 인증 대신 복구 코드(종이+메일). 새벽 자동 백업은 불가 → 열 때 알림"
+    },
+    {
+      "id": "act:011-recovery",
+      "type": "prov:Activity",
+      "label": "1.2.1 복구 코드·PIN을 잊었어요·비밀번호 저장 막기·백업 알림",
+      "date": "2026-10-16",
+      "after": "act:010-recovery-qa",
+      "by": [
+        "agent:claude-code"
+      ],
+      "generated": [
+        "app.js",
+        "app.css",
+        "tests/recovery.cjs",
+        "tests/e2e.cjs",
+        "docs/guide-for-minji.md"
+      ],
+      "decisions": [
+        "ADR-021",
+        "ADR-022",
+        "ADR-023",
+        "ADR-024",
+        "ADR-025"
+      ],
+      "result": "복구 테스트 21항목(옛 v1 옮기기 포함)·설치 8종·전체 흐름·어휘 검사 통과",
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/5"
+    },
+    {
+      "id": "src:phone-password-manager-screen",
+      "type": "prov:Entity",
+      "dcterms:title": "미영쌤 휴대폰 화면 (2026-10-16 13:48): 설치된 인계장 PIN 칸에 구글 비밀번호 관리자 창"
     },
     {
       "id": "src:chrome-webapks-screen",

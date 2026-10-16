@@ -497,3 +497,16 @@ body.install-on:not(.locked) main { padding-bottom: calc(var(--tabbar) + 150px +
 .steps { margin: 10px 0 12px; padding-left: 22px; line-height: 1.7; }
 .steps li { margin-bottom: 4px; }
 .install-first { margin: 18px 0 14px; text-align: left; font-size: 15px; }
+
+/* ---------- 복구 코드·비밀 칸 ---------- */
+[data-secret] { -webkit-text-security: disc; text-security: disc; }
+.rc-code {
+  margin: 12px 0 8px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-align: center;
+}
+.rc-input { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: .05em; text-transform: uppercase; }
+.lock .btn.ghost.small { margin-top: 4px; color: var(--muted); text-decoration: underline; }

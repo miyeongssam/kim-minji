@@ -30,6 +30,7 @@ cd /home/user/kim-minji   # 저장소 폴더
 python3 -m http.server 8765 >/dev/null 2>&1 &
 node tests/e2e.cjs <스크린샷폴더>   # 휴대폰(iPhone 13) 화면으로 PIN·쓰기·복사·검색·백업·가져오기·이어쓰기
 node tests/install.cjs <스크린샷폴더>  # 안드로이드 크롬·아이폰 사파리·카톡·슬랙·삼성 인터넷 등 설치 안내
+node tests/recovery.cjs              # 복구 코드·PIN 잊음·옛 저장 모양 옮기기·백업 알림
 node tests/check-vocab.cjs          # 태그 ↔ 온톨로지, 공휴일 일치
 ```
 - 새 기능은 `tests/e2e.cjs`에 확인 단계를 더한다.

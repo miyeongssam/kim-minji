@@ -16,7 +16,7 @@
 hos: a owl:Ontology ;
     rdfs:label "인계장 온톨로지"@ko ;
     dcterms:description "인턴 인계 기록, 병원 술기 개념, 인계장 앱을 잇는 의미 모델"@ko ;
-    owl:versionInfo "1.2.0" ;
+    owl:versionInfo "1.2.1" ;
     dcterms:created "2026-10-16"^^xsd:date .
 
 # ───────────── ① 병원 업무 영역 ─────────────
@@ -73,6 +73,10 @@ hos:birthDate a hos:ProhibitedField ; rdfs:label "생년월일·주민번호"@ko
 hos:patientPhoto a hos:ProhibitedField ; rdfs:label "환자 사진"@ko .
 
 # ───────────── ③ 앱 영역 ─────────────
+hos:Vault a owl:Class ; rdfs:label "기기 안 암호 금고 (vault v2)"@ko ;
+    rdfs:comment "기록을 무작위 데이터 키(DEK)로 잠그고, DEK를 PIN 열쇠·복구 코드 열쇠로 각각 감싸 둔다. 평문 PIN·코드·DEK는 저장하지 않는다."@ko .
+hos:WrappedKey a owl:Class ; rdfs:label "감싼 데이터 키"@ko .
+hos:unlockedBy a owl:ObjectProperty ; rdfs:domain hos:Vault ; rdfs:range hos:WrappedKey ; rdfs:comment "pin 또는 rec"@ko .
 hos:App a owl:Class ; rdfs:subClassOf schema:SoftwareApplication ; rdfs:label "앱"@ko .
 hos:PrivacyRule a owl:Class ; rdfs:label "개인정보 규칙"@ko .
 hos:Feature a owl:Class ; rdfs:label "기능"@ko .
@@ -87,8 +91,8 @@ hos:HandoffApp a hos:App ;
     schema:codeRepository <https://github.com/miyeongssam/kim-minji> ;
     hos:dataLocality "on-device-only" ;
     hos:stores hos:HandoffEntry ;
-    hos:implements hos:F_PinLock , hos:F_Write , hos:F_DayView , hos:F_Calendar , hos:F_InstallGuide , hos:F_Search , hos:F_Backup , hos:F_CopyText , hos:F_Carry ;
-    hos:enforces hos:R_OnDevice , hos:R_NoIdentifiers , hos:R_BackupPassword , hos:R_CopyPin , hos:R_Install .
+    hos:implements hos:F_PinLock , hos:F_Write , hos:F_DayView , hos:F_Calendar , hos:F_InstallGuide , hos:F_Recovery , hos:F_BackupReminder , hos:F_Search , hos:F_Backup , hos:F_CopyText , hos:F_Carry ;
+    hos:enforces hos:R_OnDevice , hos:R_NoIdentifiers , hos:R_BackupPassword , hos:R_CopyPin , hos:R_Install , hos:R_NoCloudSecrets .
 
 hos:F_PinLock a hos:Feature ; rdfs:label "PIN 잠금·자동 잠금"@ko .
 hos:F_Write a hos:Feature ; rdfs:label "인계 쓰기·고치기·지우기"@ko .
@@ -98,6 +102,8 @@ hos:F_Backup a hos:Feature ; rdfs:label "암호화 백업 내보내기·가져�
 hos:F_CopyText a hos:Feature ; rdfs:label "글로 복사"@ko .
 hos:F_Carry a hos:Feature ; rdfs:label "전날 인계 이어받기"@ko .
 hos:F_InstallGuide a hos:Feature ; rdfs:label "설치 배너·설치 안내(안드로이드 크롬 설치 창, 아이폰 사파리 안내, 앱 안 브라우저 → 크롬/사파리로 열기)"@ko .
+hos:F_Recovery a hos:Feature ; rdfs:label "복구 코드·「PIN을 잊었어요」(복구 코드로 새 PIN / 모두 지우고 새로 시작)"@ko .
+hos:F_BackupReminder a hos:Feature ; rdfs:label "백업 알림(7일 지나면 앱을 열 때 「지금 백업할까요?」, 나중에=하루 미룸)"@ko .
 hos:F_Calendar a hos:Feature ; rdfs:label "한 달 달력(일요일 시작) + 고른 날 목록, 공휴일 표시"@ko .
 
 hos:HolidayCalendar a owl:Class ; rdfs:subClassOf schema:Dataset ; rdfs:label "공휴일 달력 자료"@ko ;
@@ -112,4 +118,5 @@ hos:R_OnDevice a hos:PrivacyRule ; rdfs:label "기록은 기기 안에만, PIN�
 hos:R_NoIdentifiers a hos:PrivacyRule ; rdfs:label "환자 식별정보 칸 없음, 숫자 패턴 경고"@ko .
 hos:R_BackupPassword a hos:PrivacyRule ; rdfs:label "비밀번호 없이는 백업을 만들거나 열 수 없음"@ko .
 hos:R_CopyPin a hos:PrivacyRule ; rdfs:label "글로 복사 전 PIN 재확인"@ko .
+hos:R_NoCloudSecrets a hos:PrivacyRule ; rdfs:label "PIN·백업 비밀번호를 비밀번호 관리자(클라우드)에 저장하지 않게, 복구 코드는 종이(또는 본인 메일) — 앱은 서버로 보내지 않음"@ko .
 hos:R_Install a hos:PrivacyRule ; rdfs:label "홈 화면 설치 후 사용(아이폰 저장소 삭제 방지), 설치한 앱에서 PIN 정하기"@ko .
