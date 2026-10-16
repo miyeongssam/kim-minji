@@ -16,7 +16,7 @@
 hos: a owl:Ontology ;
     rdfs:label "인계장 온톨로지"@ko ;
     dcterms:description "인턴 인계 기록, 병원 술기 개념, 인계장 앱을 잇는 의미 모델"@ko ;
-    owl:versionInfo "1.0.0" ;
+    owl:versionInfo "1.1.0" ;
     dcterms:created "2026-10-16"^^xsd:date .
 
 # ───────────── ① 병원 업무 영역 ─────────────
@@ -87,7 +87,7 @@ hos:HandoffApp a hos:App ;
     schema:codeRepository <https://github.com/miyeongssam/kim-minji> ;
     hos:dataLocality "on-device-only" ;
     hos:stores hos:HandoffEntry ;
-    hos:implements hos:F_PinLock , hos:F_Write , hos:F_DayView , hos:F_Search , hos:F_Backup , hos:F_CopyText , hos:F_Carry ;
+    hos:implements hos:F_PinLock , hos:F_Write , hos:F_DayView , hos:F_Calendar , hos:F_Search , hos:F_Backup , hos:F_CopyText , hos:F_Carry ;
     hos:enforces hos:R_OnDevice , hos:R_NoIdentifiers , hos:R_BackupPassword , hos:R_CopyPin , hos:R_Install .
 
 hos:F_PinLock a hos:Feature ; rdfs:label "PIN 잠금·자동 잠금"@ko .
@@ -97,6 +97,15 @@ hos:F_Search a hos:Feature ; rdfs:label "검색·남은 할 일 모아보기"@ko
 hos:F_Backup a hos:Feature ; rdfs:label "암호화 백업 내보내기·가져오기"@ko .
 hos:F_CopyText a hos:Feature ; rdfs:label "글로 복사"@ko .
 hos:F_Carry a hos:Feature ; rdfs:label "전날 인계 이어받기"@ko .
+hos:F_Calendar a hos:Feature ; rdfs:label "한 달 달력(일요일 시작) + 고른 날 목록, 공휴일 표시"@ko .
+
+hos:HolidayCalendar a owl:Class ; rdfs:subClassOf schema:Dataset ; rdfs:label "공휴일 달력 자료"@ko ;
+    rdfs:comment "data/holidays-kr.json. 병원 근무자는 공휴일에도 근무하므로 알림용 정보."@ko .
+hos:PublicHoliday a owl:Class ; rdfs:label "공휴일"@ko .
+hos:hasHoliday a owl:ObjectProperty ; rdfs:domain hos:HolidayCalendar ; rdfs:range hos:PublicHoliday .
+hos:calendarLabel a owl:DatatypeProperty ; rdfs:domain hos:PublicHoliday ; rdfs:range xsd:string ; rdfs:comment "달력 칸에 쓰는 짧은 이름"@ko .
+hos:holidayKind a owl:DatatypeProperty ; rdfs:domain hos:PublicHoliday ; rdfs:range xsd:string ; rdfs:comment "공휴일 / 대체공휴일 / 선거일"@ko .
+hos:coversYears a owl:DatatypeProperty ; rdfs:domain hos:HolidayCalendar ; rdfs:range xsd:integer .
 
 hos:R_OnDevice a hos:PrivacyRule ; rdfs:label "기록은 기기 안에만, PIN으로 암호화"@ko .
 hos:R_NoIdentifiers a hos:PrivacyRule ; rdfs:label "환자 식별정보 칸 없음, 숫자 패턴 경고"@ko .

@@ -14,6 +14,8 @@ description: 인계장 PWA(kim-minji)를 고치고 내보내는 순서 — 버�
 - 데이터 칸 추가·변경 → `ontology/context.jsonld`, `ontology/handoff.ttl`, `docs/semantic-view.md` 3번 표, `normalizeEntry`.
 - 분류 태그 추가 → `app.js` `TAG_SUGGESTIONS` + `ontology/procedures.jsonld`에 개념(`id`, `prefLabel`, `broader`, `appTag`, `sourcedFrom`; 근거 미확인이면 `sourceStatus`).
 
+- 공휴일 추가(해마다 6월 월력요항 발표 뒤) → `app.js` `HOLIDAYS`·`HOLIDAY_YEARS` + `data/holidays-kr.json` (출처 `dcterms:source`도). `check-vocab.cjs`가 두 곳이 같은지, 대체공휴일이 평일인지 검사한다.
+
 ## 2. 버전 (세 곳 모두 같은 값)
 | 파일 | 위치 |
 |---|---|
@@ -40,4 +42,5 @@ node tests/check-vocab.cjs          # 태그 ↔ 온톨로지 일치
 
 ## 5. 올리기
 - `main`이 아니라 작업 브랜치에 커밋 → `main`으로 PR. PR 본문에 바뀐 점·테스트 결과·휴대폰에서 확인할 점을 표로.
+- 사용자에게는 답변 맨 위 첫 줄에 누를 수 있는 PR 주소를 준다(번호만 말하지 않기). 합치는 방법(Merge pull request → Confirm merge)도 함께.
 - 합친 뒤 휴대폰에서는 앱을 완전히 닫았다가 다시 열면 「새 버전이 준비됐어요」가 뜬다.

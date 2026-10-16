@@ -49,9 +49,29 @@ const OUT = process.argv[2] || require('os').tmpdir();
   // 날짜별
   await page.click('.tabs a[href^="#/day"]'); await page.waitForSelector('.card'); await shot('07-day');
   // 다음날 이어받기
-  await page.click('[aria-label=다음날]'); await page.waitForSelector('[data-action=carry]'); await page.click('[data-action=carry]');
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const now = new Date(); const tomorrow = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+  await page.evaluate((t) => { location.hash = '#/day/' + t; }, tomorrow);
+  await page.waitForSelector('[data-action=carry]'); await page.click('[data-action=carry]');
   await page.click('.modal [data-ok]'); await page.waitForSelector('.card');
   console.log('carry cards:', await page.locator('.card').count());
+  // 한 달 달력: 일요일 시작, 달 넘기기, 공휴일, 날짜별 탭
+  console.log('week header:', (await page.locator('.cal-week').innerText()).replace(/\s+/g, ''));
+  const t0 = await page.locator('.cal-title').innerText();
+  await page.click('[data-action=month][data-dir="1"]'); await page.waitForTimeout(200);
+  await page.click('[data-action=month][data-dir="1"]'); await page.waitForTimeout(200);
+  console.log('month nav:', t0.trim(), '->', (await page.locator('.cal-title').innerText()).trim(), '|', await page.evaluate(() => location.hash));
+  await page.evaluate(() => { location.hash = '#/day/2026-09-25'; }); await page.waitForTimeout(200);
+  console.log('holiday head:', (await page.locator('.sel-head h2').innerText()).trim(), '| red cells w/ label:', await page.locator('.cal-day .cd-h').count());
+  await page.screenshot({ path: `${OUT}/11-calendar-holiday.png` });
+  await page.click('.tabs a[data-action=tab-day]'); await page.waitForTimeout(200);
+  console.log('tab-day ->', await page.evaluate(() => location.hash), '| today?', await page.locator('.cal-day.today.sel').count());
+  await page.click('.tabs a[data-action=tab-day]'); await page.waitForTimeout(200);
+  console.log('tab-day again (same) ->', await page.evaluate(() => location.hash));
+  await page.locator('.cal-day:not(.out)').first().click(); await page.waitForTimeout(200);
+  console.log('pick 1st ->', await page.evaluate(() => location.hash));
+  await page.click('.tabs a[data-action=tab-day]'); await page.waitForTimeout(200);
+  await page.screenshot({ path: `${OUT}/12-calendar-today.png` });
   // 검색
   await page.click('.tabs a[href="#/search"]'); await page.fill('#q', 'abga 701'); await page.waitForTimeout(200); await shot('08-search');
   console.log('search results:', await page.locator('#results .card').count());

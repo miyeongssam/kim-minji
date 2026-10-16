@@ -28,7 +28,7 @@
       ],
       "schema:runtimePlatform": "모바일 브라우저 (iOS Safari, Android Chrome), GitHub Pages",
       "schema:inLanguage": "ko",
-      "schema:version": "1.0.0",
+      "schema:version": "1.1.0",
       "dcterms:created": "2026-10-16",
       "schema:maintainer": {
         "id": "https://github.com/miyeongssam",
@@ -87,6 +87,10 @@
         {
           "id": "tests/",
           "schema:description": "전체 흐름 테스트, 어휘 일치 검사"
+        },
+        {
+          "id": "data/",
+          "schema:description": "공휴일 달력 자료(2026–2027, 근거 포함)"
         }
       ],
       "schema:url": {
@@ -103,7 +107,8 @@
         "hos:enforceHttps": true,
         "hos:customDomain": null,
         "hos:firstDeployed": "2026-10-16",
-        "hos:mergeCommit": "13c5bc4"
+        "hos:mergeCommit": "13c5bc4",
+        "hos:phoneCheck": "2026-10-16 미영쌤 휴대폰에서 열림 확인"
       },
       "hos:worklog": {
         "id": "metadata/worklog.jsonld"
