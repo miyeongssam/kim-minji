@@ -221,7 +221,71 @@
         "ADR-016"
       ],
       "result": "PR을 만들면 답변 첫 줄에 누를 수 있는 PR 주소를 주기로 함",
-      "pr": "https://github.com/miyeongssam/kim-minji/pull/3"
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/3",
+      "hos:mergeCommit": "780e38e"
+    },
+    {
+      "id": "act:008-install-diagnosis",
+      "type": "prov:Activity",
+      "label": "안드로이드 설치 실패 진단",
+      "date": "2026-10-16",
+      "after": "act:007-pr-link-rule",
+      "by": [
+        "agent:miyeongssam",
+        "agent:claude-code"
+      ],
+      "used": [
+        "src:chrome-webapks-screen",
+        "src:choisci-homepage-install-button",
+        "src:choigwahak-app-manifests"
+      ],
+      "result": "설치 기록만 있고 WebAPK 없음. 다른 최과학 앱과 설정 차이·주소 범위 겹침 없음 → manifest id 새로 지정 + 설치 배너로 해결하기로"
+    },
+    {
+      "id": "act:009-install-guide",
+      "type": "prov:Activity",
+      "label": "1.2.0 설치 배너·설치 안내·앱 고유 번호",
+      "date": "2026-10-16",
+      "after": "act:008-install-diagnosis",
+      "by": [
+        "agent:claude-code",
+        "agent:miyeongssam"
+      ],
+      "used": [
+        "src:choisci-homepage-install-button"
+      ],
+      "generated": [
+        "app.js",
+        "app.css",
+        "manifest.webmanifest",
+        "icons/screenshot-calendar.png",
+        "tests/install.cjs",
+        "tests/e2e.cjs",
+        "docs/guide-for-minji.md"
+      ],
+      "decisions": [
+        "ADR-017",
+        "ADR-018",
+        "ADR-019",
+        "ADR-020"
+      ],
+      "result": "설치 안내 8종(안드로이드 크롬·아이폰 사파리·카톡 2종·슬랙·삼성 인터넷·아이폰 크롬·컴퓨터)·전체 흐름·어휘 검사 통과",
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/4"
+    },
+    {
+      "id": "src:chrome-webapks-screen",
+      "type": "prov:Entity",
+      "dcterms:title": "미영쌤 휴대폰 chrome://webapks 화면 (2026-10-16 13:32): 최과학 과학·온도-평형상수 탐구는 있고 인계장은 없음"
+    },
+    {
+      "id": "src:choisci-homepage-install-button",
+      "type": "prov:Entity",
+      "dcterms:title": "choisci-homepage client/src/components/InstallAppButton.tsx (학원 홈페이지 설치 배너)"
+    },
+    {
+      "id": "src:choigwahak-app-manifests",
+      "type": "prov:Entity",
+      "dcterms:title": "최과학 앱 manifest 11개 (choigwahak-science 7, convex-lens, choisci-periodic-table 등)"
     },
     {
       "id": "src:kasa-calendar-2026",

@@ -15,6 +15,9 @@ const OUT = process.argv[2] || require('os').tmpdir();
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   const shot = (n) => page.screenshot({ path: `${OUT}/${n}.png`, fullPage: false });
   await page.goto('http://localhost:8765/');
+  // 아이폰 사파리 화면 → 먼저 설치 안내가 나온다. 테스트는 「설치하지 않고 계속하기」로 넘어가고 배너는 닫는다.
+  await page.waitForSelector('[data-action=skip-install]'); await shot('00-install-first');
+  await page.click('[data-action=skip-install]'); await page.click('#installBar [data-ib=close]');
   await page.fill('#pin1', '1234'); await page.fill('#pin2', '1234'); await shot('01-setup');
   await page.click('button[type=submit]');
   await page.waitForSelector('.fab'); await shot('02-day-empty');

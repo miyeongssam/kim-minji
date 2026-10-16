@@ -29,7 +29,8 @@ description: 인계장 PWA(kim-minji)를 고치고 내보내는 순서 — 버�
 cd /home/user/kim-minji   # 저장소 폴더
 python3 -m http.server 8765 >/dev/null 2>&1 &
 node tests/e2e.cjs <스크린샷폴더>   # 휴대폰(iPhone 13) 화면으로 PIN·쓰기·복사·검색·백업·가져오기·이어쓰기
-node tests/check-vocab.cjs          # 태그 ↔ 온톨로지 일치
+node tests/install.cjs <스크린샷폴더>  # 안드로이드 크롬·아이폰 사파리·카톡·슬랙·삼성 인터넷 등 설치 안내
+node tests/check-vocab.cjs          # 태그 ↔ 온톨로지, 공휴일 일치
 ```
 - 새 기능은 `tests/e2e.cjs`에 확인 단계를 더한다.
 - 스크린샷을 직접 열어 보고, 사용자에게 보여 줄 때는 "휴대폰 화면으로 확인했다"는 근거를 말한다.
