@@ -1,0 +1,34 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "hos": "https://miyeongssam.github.io/kim-minji/ontology#",
+    "proc": "https://miyeongssam.github.io/kim-minji/ontology/procedures#",
+    "schema": "https://schema.org/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+
+    "HandoffBackup": "hos:HandoffBackup",
+    "HandoffEntry": "hos:HandoffEntry",
+    "Task": "hos:Task",
+
+    "appVersion": "schema:softwareVersion",
+    "exportedAt": { "@id": "prov:generatedAtTime", "@type": "xsd:dateTime" },
+    "entries": { "@id": "hos:hasEntry", "@container": "@set" },
+
+    "id": "@id",
+    "date": { "@id": "hos:handoffDate", "@type": "xsd:date" },
+    "ward": "hos:ward",
+    "bed": "hos:bedLocation",
+    "title": "hos:summary",
+    "body": "hos:note",
+    "tags": { "@id": "hos:category", "@container": "@set" },
+    "important": { "@id": "hos:isImportant", "@type": "xsd:boolean" },
+    "todos": { "@id": "hos:hasTask", "@container": "@list" },
+    "t": "hos:taskText",
+    "done": { "@id": "hos:isDone", "@type": "xsd:boolean" },
+    "createdAt": { "@id": "hos:createdAtMs", "@type": "xsd:long" },
+    "updatedAt": { "@id": "hos:updatedAtMs", "@type": "xsd:long" }
+  }
+}

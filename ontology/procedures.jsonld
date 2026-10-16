@@ -1,0 +1,408 @@
+{
+  "@context": {
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "hos": "https://miyeongssam.github.io/kim-minji/ontology#",
+    "proc": "https://miyeongssam.github.io/kim-minji/ontology/procedures#",
+    "src": "https://miyeongssam.github.io/kim-minji/ontology/sources#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "id": "@id",
+    "type": "@type",
+    "prefLabel": {
+      "@id": "skos:prefLabel",
+      "@language": "ko"
+    },
+    "altLabel": {
+      "@id": "skos:altLabel",
+      "@container": "@set"
+    },
+    "definition": {
+      "@id": "skos:definition",
+      "@language": "ko"
+    },
+    "broader": {
+      "@id": "skos:broader",
+      "@type": "@id"
+    },
+    "inScheme": {
+      "@id": "skos:inScheme",
+      "@type": "@id"
+    },
+    "priorityRank": "hos:priorityRank",
+    "higherPriorityThan": {
+      "@id": "hos:higherPriorityThan",
+      "@type": "@id"
+    },
+    "sourcedFrom": {
+      "@id": "hos:sourcedFrom",
+      "@type": "@id"
+    },
+    "sourceStatus": "hos:sourceStatus",
+    "appTag": "hos:appTag"
+  },
+  "@graph": [
+    {
+      "id": "proc:scheme",
+      "type": "skos:ConceptScheme",
+      "prefLabel": "충북대병원 인턴 술기·업무 개념 목록",
+      "dcterms:modified": "2026-10-16",
+      "definition": "인계장 앱의 분류 태그, 앞으로 만들 시뮬레이션 게임, 인계장 문서가 같은 이름으로 같은 개념을 가리키게 하는 기준 목록. appTag 는 앱에서 쓰는 태그 글자와 정확히 같아야 한다."
+    },
+    {
+      "id": "src:intern-orientation-2026",
+      "type": "hos:SourceDocument",
+      "prefLabel": "12. 2026 인턴장 발표자료.pptx (2026.08.24 인턴 오리엔테이션)"
+    },
+    {
+      "id": "src:im-handoff-260923",
+      "type": "hos:SourceDocument",
+      "prefLabel": "IM 내과인계장 (update 260923).docx",
+      "sourceStatus": "아직 읽지 못함 — 구글 문서로 바꾼 뒤 읽기"
+    },
+    {
+      "id": "src:site-marking-manual",
+      "type": "hos:SourceDocument",
+      "prefLabel": "수술 시술부위 표시 매뉴얼.pdf (인증기준 1.3)"
+    },
+    {
+      "id": "proc:cat-emergency",
+      "type": "hos:ProcedureCategory",
+      "prefLabel": "응급",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cat-specimen",
+      "type": "hos:ProcedureCategory",
+      "prefLabel": "검체 채취",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cat-line",
+      "type": "hos:ProcedureCategory",
+      "prefLabel": "라인·포트 관리",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cat-tube",
+      "type": "hos:ProcedureCategory",
+      "prefLabel": "튜브·배액관",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cat-medication",
+      "type": "hos:ProcedureCategory",
+      "prefLabel": "투약·수혈",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cat-transport",
+      "type": "hos:ProcedureCategory",
+      "prefLabel": "이송·킵",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cat-wound",
+      "type": "hos:ProcedureCategory",
+      "prefLabel": "상처 관리",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cat-admin",
+      "type": "hos:ProcedureCategory",
+      "prefLabel": "기록·행정",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cat-safety",
+      "type": "hos:ProcedureCategory",
+      "prefLabel": "환자 안전",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cpr",
+      "type": "hos:Procedure",
+      "prefLabel": "CPR",
+      "broader": "proc:cat-emergency",
+      "appTag": "CPR",
+      "priorityRank": 0,
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:abga",
+      "type": "hos:Procedure",
+      "prefLabel": "ABGA",
+      "altLabel": [
+        "radial ABGA",
+        "femoral ABGA"
+      ],
+      "broader": "proc:cat-specimen",
+      "appTag": "ABGA",
+      "priorityRank": 1,
+      "higherPriorityThan": "proc:dressing",
+      "definition": "다른 어떤 업무보다 먼저 한다(발표자료: ABGA >>> 각종 dressing).",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:pcps-abga",
+      "type": "hos:Procedure",
+      "prefLabel": "PCPS ABGA",
+      "broader": "proc:cat-specimen",
+      "appTag": "PCPS ABGA",
+      "priorityRank": 1,
+      "definition": "flushing·air 절대 금지.",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:paracentesis",
+      "type": "hos:Procedure",
+      "prefLabel": "Paracentesis",
+      "broader": "proc:cat-specimen",
+      "appTag": "Paracentesis",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cline-culture",
+      "type": "hos:Procedure",
+      "prefLabel": "C-line culture",
+      "broader": "proc:cat-specimen",
+      "appTag": "C-line culture",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:sputum-culture",
+      "type": "hos:Procedure",
+      "prefLabel": "Sputum culture",
+      "altLabel": [
+        "TAA sputum culture"
+      ],
+      "broader": "proc:cat-specimen",
+      "appTag": "Sputum culture",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:bm-bx-assist",
+      "type": "hos:Procedure",
+      "prefLabel": "BM bx assist",
+      "broader": "proc:cat-specimen",
+      "appTag": "BM bx assist",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cport",
+      "type": "hos:Procedure",
+      "prefLabel": "C-port",
+      "altLabel": [
+        "C-port insertion",
+        "C-port remove"
+      ],
+      "broader": "proc:cat-line",
+      "appTag": "C-port",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:chemoport-needle-change",
+      "type": "hos:Procedure",
+      "prefLabel": "Chemoport needle change",
+      "broader": "proc:cat-line",
+      "appTag": "Chemoport needle change",
+      "sourcedFrom": "src:im-handoff-260923",
+      "sourceStatus": "근거 문서 미확인",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:cline-remove",
+      "type": "hos:Procedure",
+      "prefLabel": "C-line remove",
+      "altLabel": [
+        "line remove",
+        "PICC remove",
+        "IJC remove"
+      ],
+      "broader": "proc:cat-line",
+      "appTag": "C-line remove",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:hickman",
+      "type": "hos:Procedure",
+      "prefLabel": "Hickman",
+      "altLabel": [
+        "Hickman lab",
+        "Hickman line 교체"
+      ],
+      "broader": "proc:cat-line",
+      "appTag": "Hickman",
+      "sourcedFrom": "src:im-handoff-260923",
+      "sourceStatus": "근거 문서 미확인",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:l-tube",
+      "type": "hos:Procedure",
+      "prefLabel": "L-tube",
+      "broader": "proc:cat-tube",
+      "appTag": "L-tube",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:foley",
+      "type": "hos:Procedure",
+      "prefLabel": "Foley",
+      "altLabel": [
+        "Foley insertion",
+        "Foley remove"
+      ],
+      "broader": "proc:cat-tube",
+      "appTag": "Foley",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:tube-irrigation",
+      "type": "hos:Procedure",
+      "prefLabel": "Tube irrigation",
+      "altLabel": [
+        "Foley irrigation"
+      ],
+      "broader": "proc:cat-tube",
+      "appTag": "Tube irrigation",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:drain-remove",
+      "type": "hos:Procedure",
+      "prefLabel": "PCD·PTBD·PTGBD remove",
+      "broader": "proc:cat-tube",
+      "appTag": "PCD·PTBD·PTGBD remove",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:t-tube-change",
+      "type": "hos:Procedure",
+      "prefLabel": "T-tube change",
+      "broader": "proc:cat-tube",
+      "appTag": "T-tube change",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:ctd-change",
+      "type": "hos:Procedure",
+      "prefLabel": "CTD change",
+      "broader": "proc:cat-tube",
+      "appTag": "CTD change",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:enema",
+      "type": "hos:Procedure",
+      "prefLabel": "Enema",
+      "broader": "proc:cat-tube",
+      "appTag": "Enema",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:chemo",
+      "type": "hos:Procedure",
+      "prefLabel": "항암제",
+      "altLabel": [
+        "Chemo",
+        "항암제 연결"
+      ],
+      "broader": "proc:cat-medication",
+      "appTag": "항암제",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:transfusion",
+      "type": "hos:Procedure",
+      "prefLabel": "수혈",
+      "altLabel": [
+        "PLT 수혈"
+      ],
+      "broader": "proc:cat-medication",
+      "appTag": "수혈",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:ct-mri-keep",
+      "type": "hos:Procedure",
+      "prefLabel": "CT·MRI keep",
+      "broader": "proc:cat-transport",
+      "appTag": "CT·MRI keep",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:dressing",
+      "type": "hos:Procedure",
+      "prefLabel": "Dressing",
+      "broader": "proc:cat-wound",
+      "appTag": "Dressing",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:consent",
+      "type": "hos:Procedure",
+      "prefLabel": "동의서",
+      "broader": "proc:cat-admin",
+      "appTag": "동의서",
+      "sourcedFrom": "src:intern-orientation-2026",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:death-declaration",
+      "type": "hos:Procedure",
+      "prefLabel": "사망선언",
+      "altLabel": [
+        "사망선언 및 기록"
+      ],
+      "broader": "proc:cat-admin",
+      "appTag": "사망선언",
+      "sourcedFrom": "src:im-handoff-260923",
+      "sourceStatus": "근거 문서 미확인",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:lab-followup",
+      "type": "hos:Procedure",
+      "prefLabel": "검사 f/u",
+      "broader": "proc:cat-admin",
+      "appTag": "검사 f/u",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:notify",
+      "type": "hos:Procedure",
+      "prefLabel": "노티",
+      "broader": "proc:cat-admin",
+      "appTag": "노티",
+      "inScheme": "proc:scheme"
+    },
+    {
+      "id": "proc:site-marking",
+      "type": "hos:Procedure",
+      "prefLabel": "수술·시술부위 표시",
+      "broader": "proc:cat-safety",
+      "definition": "원 안에 L/R/B, 다중구조·다중수준은 원 주변에 레벨. 이동 전에 환자와 함께 표시.",
+      "sourcedFrom": "src:site-marking-manual",
+      "inScheme": "proc:scheme"
+    }
+  ]
+}
