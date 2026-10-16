@@ -204,6 +204,26 @@
       "pr": "https://github.com/miyeongssam/kim-minji/pull/3"
     },
     {
+      "id": "act:007-pr-link-rule",
+      "type": "prov:Activity",
+      "label": "PR 안내 방식 고침",
+      "date": "2026-10-16",
+      "after": "act:006-calendar",
+      "by": [
+        "agent:claude-code",
+        "agent:miyeongssam"
+      ],
+      "generated": [
+        "CLAUDE.md",
+        ".claude/skills/handoff-app-release/SKILL.md"
+      ],
+      "decisions": [
+        "ADR-016"
+      ],
+      "result": "PR을 만들면 답변 첫 줄에 누를 수 있는 PR 주소를 주기로 함",
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/3"
+    },
+    {
       "id": "src:kasa-calendar-2026",
       "type": "prov:Entity",
       "dcterms:title": "우주항공청 2026년도 월력요항",

@@ -33,6 +33,7 @@
 5. 테스트: 저장소 폴더에서 `python3 -m http.server 8765 &` → `node tests/e2e.cjs` → `node tests/check-vocab.cjs`. 둘 다 통과해야 한다.
 6. `metadata/decisions.md`에 결정 추가, `docs/HANDOFF.md` 갱신, `metadata/project.jsonld` 버전 갱신.
 7. 브랜치에 커밋 → `main`으로 PR. 합치면 GitHub Pages(`main` / root)가 자동 배포.
+8. PR을 만들면 사용자에게 답할 때 **맨 위 첫 줄에 누를 수 있는 PR 주소**(`https://github.com/miyeongssam/kim-minji/pull/번호`)를 준다. "PR #3"처럼 번호만 말하지 않는다.
 
 ## 기록 규칙 (AI 레디, 매 작업 끝날 때 반드시)
 작업이 하나 끝나면 아래 4곳을 같은 내용으로 함께 고친다. 사용자가 따로 말하지 않아도 한다.
