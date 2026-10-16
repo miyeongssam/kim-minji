@@ -1,0 +1,105 @@
+# 인계장 온톨로지 (hos:)
+# 세 영역을 하나의 그래프로 잇는다: ① 병원 업무(술기·우선순위) ② 인계장 기록 ③ 앱(소프트웨어·보안 규칙).
+# 실제 인계 기록(개체)은 이 저장소에 절대 넣지 않는다. 여기에는 "모양(스키마)"과 "개념(어휘)"만 둔다.
+
+@prefix hos:     <https://miyeongssam.github.io/kim-minji/ontology#> .
+@prefix proc:    <https://miyeongssam.github.io/kim-minji/ontology/procedures#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema:  <https://schema.org/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+
+hos: a owl:Ontology ;
+    rdfs:label "인계장 온톨로지"@ko ;
+    dcterms:description "인턴 인계 기록, 병원 술기 개념, 인계장 앱을 잇는 의미 모델"@ko ;
+    owl:versionInfo "1.0.0" ;
+    dcterms:created "2026-10-16"^^xsd:date .
+
+# ───────────── ① 병원 업무 영역 ─────────────
+hos:Procedure a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "술기·업무"@ko ;
+    rdfs:comment "인턴이 하는 처치·검사·행정 업무. 개념 목록은 procedures.jsonld (SKOS)."@ko .
+
+hos:ProcedureCategory a owl:Class ; rdfs:subClassOf skos:Concept ; rdfs:label "업무 분류"@ko .
+hos:Supply a owl:Class ; rdfs:label "물품"@ko ; rdfs:comment "D-set, 포지플러쉬, culture bottle 등"@ko .
+hos:Step a owl:Class ; rdfs:label "단계"@ko ; rdfs:comment "술기의 순서 있는 한 단계 (준비→시행→검체→마무리)"@ko .
+hos:SourceDocument a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "근거 자료"@ko .
+
+hos:requiresSupply a owl:ObjectProperty ; rdfs:domain hos:Procedure ; rdfs:range hos:Supply ; rdfs:label "필요 물품"@ko .
+hos:hasStep a owl:ObjectProperty ; rdfs:domain hos:Procedure ; rdfs:range hos:Step ; rdfs:label "단계"@ko .
+hos:stepOrder a owl:DatatypeProperty ; rdfs:domain hos:Step ; rdfs:range xsd:integer .
+hos:priorityRank a owl:DatatypeProperty ; rdfs:domain hos:Procedure ; rdfs:range xsd:integer ;
+    rdfs:comment "작을수록 먼저. 예: ABGA는 dressing보다 우선."@ko .
+hos:higherPriorityThan a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:domain hos:Procedure ; rdfs:range hos:Procedure .
+hos:appTag a owl:DatatypeProperty ; rdfs:domain hos:Procedure ; rdfs:range xsd:string ;
+    rdfs:comment "앱 분류 태그 글자. app.js 의 TAG_SUGGESTIONS 와 똑같아야 한다(tests/check-vocab.cjs 로 확인)."@ko .
+hos:sourceStatus a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:comment "근거 문서를 아직 확인하지 못했을 때 그 상태"@ko .
+hos:sourcedFrom a owl:ObjectProperty ; rdfs:subPropertyOf prov:wasDerivedFrom ; rdfs:range hos:SourceDocument ; rdfs:label "근거"@ko .
+
+# ───────────── ② 인계장 기록 영역 ─────────────
+hos:HandoffEntry a owl:Class ;
+    rdfs:label "인계 한 건"@ko ;
+    rdfs:comment "한 날짜·한 침상에 대한 인계. 환자 식별정보(이름·등록번호·생년월일)는 담지 않는다."@ko .
+hos:Task a owl:Class ; rdfs:label "할 일"@ko .
+hos:HandoffBackup a owl:Class ; rdfs:subClassOf schema:Dataset ; rdfs:label "암호화 백업 묶음"@ko .
+
+hos:handoffDate a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain hos:HandoffEntry ; rdfs:range xsd:date ; rdfs:label "날짜"@ko .
+hos:ward a owl:DatatypeProperty ; rdfs:domain hos:HandoffEntry ; rdfs:range xsd:string ; rdfs:label "병동"@ko .
+hos:bedLocation a owl:DatatypeProperty ; rdfs:domain hos:HandoffEntry ; rdfs:range xsd:string ; rdfs:label "병실·침상"@ko .
+hos:summary a owl:DatatypeProperty ; rdfs:domain hos:HandoffEntry ; rdfs:range xsd:string ; rdfs:label "요약"@ko .
+hos:note a owl:DatatypeProperty ; rdfs:domain hos:HandoffEntry ; rdfs:range xsd:string ; rdfs:label "내용"@ko .
+hos:isImportant a owl:DatatypeProperty ; rdfs:domain hos:HandoffEntry ; rdfs:range xsd:boolean ; rdfs:label "중요"@ko .
+hos:category a owl:DatatypeProperty ; rdfs:domain hos:HandoffEntry ; rdfs:range xsd:string ;
+    rdfs:label "분류 태그"@ko ;
+    rdfs:comment "앱의 태그 문자열. procedures.jsonld 의 skos:prefLabel 과 같으면 hos:aboutProcedure 로 이어 본다."@ko .
+hos:aboutProcedure a owl:ObjectProperty ; rdfs:domain hos:HandoffEntry ; rdfs:range hos:Procedure ; rdfs:label "관련 술기"@ko .
+hos:hasEntry a owl:ObjectProperty ; rdfs:domain hos:HandoffBackup ; rdfs:range hos:HandoffEntry .
+hos:hasTask a owl:ObjectProperty ; rdfs:domain hos:HandoffEntry ; rdfs:range hos:Task ; rdfs:label "할 일"@ko .
+hos:taskText a owl:DatatypeProperty ; rdfs:domain hos:Task ; rdfs:range xsd:string .
+hos:isDone a owl:DatatypeProperty ; rdfs:domain hos:Task ; rdfs:range xsd:boolean .
+hos:createdAtMs a owl:DatatypeProperty ; rdfs:range xsd:long ; rdfs:comment "유닉스 밀리초"@ko .
+hos:updatedAtMs a owl:DatatypeProperty ; rdfs:range xsd:long ; rdfs:comment "유닉스 밀리초. 백업 합치기에서 더 큰 쪽이 이긴다."@ko .
+
+# 넣지 않는 정보 — 앱·스키마 어디에도 만들지 않는다.
+hos:ProhibitedField a owl:Class ; rdfs:label "금지 항목"@ko .
+hos:patientName a hos:ProhibitedField ; rdfs:label "환자 이름"@ko .
+hos:medicalRecordNumber a hos:ProhibitedField ; rdfs:label "등록번호"@ko .
+hos:birthDate a hos:ProhibitedField ; rdfs:label "생년월일·주민번호"@ko .
+hos:patientPhoto a hos:ProhibitedField ; rdfs:label "환자 사진"@ko .
+
+# ───────────── ③ 앱 영역 ─────────────
+hos:App a owl:Class ; rdfs:subClassOf schema:SoftwareApplication ; rdfs:label "앱"@ko .
+hos:PrivacyRule a owl:Class ; rdfs:label "개인정보 규칙"@ko .
+hos:Feature a owl:Class ; rdfs:label "기능"@ko .
+hos:implements a owl:ObjectProperty ; rdfs:domain hos:App ; rdfs:range hos:Feature .
+hos:enforces a owl:ObjectProperty ; rdfs:range hos:PrivacyRule .
+hos:stores a owl:ObjectProperty ; rdfs:domain hos:App ; rdfs:range hos:HandoffEntry .
+hos:dataLocality a owl:DatatypeProperty ; rdfs:range xsd:string .
+
+hos:HandoffApp a hos:App ;
+    rdfs:label "인계장 PWA"@ko ;
+    schema:url <https://miyeongssam.github.io/kim-minji/> ;
+    schema:codeRepository <https://github.com/miyeongssam/kim-minji> ;
+    hos:dataLocality "on-device-only" ;
+    hos:stores hos:HandoffEntry ;
+    hos:implements hos:F_PinLock , hos:F_Write , hos:F_DayView , hos:F_Search , hos:F_Backup , hos:F_CopyText , hos:F_Carry ;
+    hos:enforces hos:R_OnDevice , hos:R_NoIdentifiers , hos:R_BackupPassword , hos:R_CopyPin , hos:R_Install .
+
+hos:F_PinLock a hos:Feature ; rdfs:label "PIN 잠금·자동 잠금"@ko .
+hos:F_Write a hos:Feature ; rdfs:label "인계 쓰기·고치기·지우기"@ko .
+hos:F_DayView a hos:Feature ; rdfs:label "날짜별 보기"@ko .
+hos:F_Search a hos:Feature ; rdfs:label "검색·남은 할 일 모아보기"@ko .
+hos:F_Backup a hos:Feature ; rdfs:label "암호화 백업 내보내기·가져오기"@ko .
+hos:F_CopyText a hos:Feature ; rdfs:label "글로 복사"@ko .
+hos:F_Carry a hos:Feature ; rdfs:label "전날 인계 이어받기"@ko .
+
+hos:R_OnDevice a hos:PrivacyRule ; rdfs:label "기록은 기기 안에만, PIN으로 암호화"@ko .
+hos:R_NoIdentifiers a hos:PrivacyRule ; rdfs:label "환자 식별정보 칸 없음, 숫자 패턴 경고"@ko .
+hos:R_BackupPassword a hos:PrivacyRule ; rdfs:label "비밀번호 없이는 백업을 만들거나 열 수 없음"@ko .
+hos:R_CopyPin a hos:PrivacyRule ; rdfs:label "글로 복사 전 PIN 재확인"@ko .
+hos:R_Install a hos:PrivacyRule ; rdfs:label "홈 화면 설치 후 사용(아이폰 저장소 삭제 방지)"@ko .
