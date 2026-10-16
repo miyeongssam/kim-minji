@@ -1,0 +1,74 @@
+{
+  "@context": {
+    "prov": "http://www.w3.org/ns/prov#",
+    "schema": "https://schema.org/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "hos": "https://miyeongssam.github.io/kim-minji/ontology#",
+    "src": "https://miyeongssam.github.io/kim-minji/ontology/sources#",
+    "act": "https://miyeongssam.github.io/kim-minji/metadata/worklog#",
+    "agent": "https://miyeongssam.github.io/kim-minji/metadata/agents#",
+    "id": "@id",
+    "type": "@type",
+    "label": "dcterms:title",
+    "date": { "@id": "prov:endedAtTime", "@type": "xsd:date" },
+    "by": { "@id": "prov:wasAssociatedWith", "@type": "@id", "@container": "@set" },
+    "used": { "@id": "prov:used", "@type": "@id", "@container": "@set" },
+    "generated": { "@id": "prov:generated", "@container": "@set" },
+    "after": { "@id": "prov:wasInformedBy", "@type": "@id" },
+    "result": "hos:result",
+    "decisions": { "@id": "hos:decision", "@container": "@set" },
+    "commit": "hos:gitCommit",
+    "pr": { "@id": "hos:pullRequest", "@type": "@id" }
+  },
+  "@graph": [
+    { "id": "agent:miyeongssam", "type": ["prov:Agent", "schema:Person"], "schema:name": "최미영 (miyeongssam)", "schema:roleName": "저장소 관리자" },
+    { "id": "agent:minji", "type": ["prov:Agent", "schema:Person"], "schema:name": "김민지", "schema:roleName": "앱 사용자 (충북대병원 인턴)" },
+    { "id": "agent:claude-code", "type": ["prov:SoftwareAgent"], "schema:name": "Claude Code" },
+
+    {
+      "id": "act:001-source-read",
+      "type": "prov:Activity",
+      "label": "인계 자료 읽기 (구글 드라이브)",
+      "date": "2026-10-16",
+      "by": ["agent:claude-code"],
+      "used": ["src:intern-orientation-2026", "src:site-marking-manual", "src:im-handoff-260923"],
+      "result": "발표자료·시술부위 매뉴얼은 글자 읽음. 내과 인계장 Word(52MB)는 글자가 나오지 않음 → 구글 문서 변환 필요. 사진은 받지 못함."
+    },
+    {
+      "id": "act:002-build-pwa",
+      "type": "prov:Activity",
+      "label": "인계장 PWA 1.0.0 제작 + 의미 모델",
+      "date": "2026-10-16",
+      "after": "act:001-source-read",
+      "by": ["agent:claude-code", "agent:miyeongssam"],
+      "generated": ["index.html", "app.js", "app.css", "sw.js", "manifest.webmanifest", "ontology/", "metadata/", "docs/", "tests/", "CLAUDE.md"],
+      "decisions": ["ADR-001", "ADR-002", "ADR-003", "ADR-004", "ADR-005", "ADR-006", "ADR-007", "ADR-008", "ADR-009", "ADR-010"],
+      "result": "휴대폰 화면 자동 테스트 통과, 평문 저장 없음 확인",
+      "commit": "16a90ba",
+      "pr": "https://github.com/miyeongssam/kim-minji/pull/1"
+    },
+    {
+      "id": "act:003-merge-deploy",
+      "type": "prov:Activity",
+      "label": "PR #1 합치기 + GitHub Pages 켜기",
+      "date": "2026-10-16",
+      "after": "act:002-build-pwa",
+      "by": ["agent:miyeongssam"],
+      "decisions": ["ADR-011"],
+      "result": "main 합침(13c5bc4). Pages: Deploy from a branch / main / (root), Enforce HTTPS 켜짐, 커스텀 도메인 없음. 사이트 열림 확인은 휴대폰에서 할 차례.",
+      "commit": "13c5bc4"
+    },
+    {
+      "id": "act:004-records",
+      "type": "prov:Activity",
+      "label": "배포·작업 기록 정리 (AI 레디 기록 규칙 도입)",
+      "date": "2026-10-16",
+      "after": "act:003-merge-deploy",
+      "by": ["agent:claude-code"],
+      "generated": ["metadata/worklog.jsonld", "docs/worklog.md", "docs/HANDOFF.md", "metadata/project.jsonld"],
+      "decisions": ["ADR-012"],
+      "result": "작업이 끝날 때마다 사람용(md)·기계용(jsonld) 기록을 함께 남기는 규칙을 CLAUDE.md와 스킬에 넣음"
+    }
+  ]
+}

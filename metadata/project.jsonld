@@ -7,39 +7,107 @@
     "hos": "https://miyeongssam.github.io/kim-minji/ontology#",
     "src": "https://miyeongssam.github.io/kim-minji/ontology/sources#",
     "id": "@id",
-    "type": "@type"
+    "type": "@type",
+    "hos:customDomain": {
+      "@id": "hos:customDomain"
+    }
   },
   "@graph": [
     {
       "id": "https://github.com/miyeongssam/kim-minji",
-      "type": ["schema:SoftwareSourceCode", "prov:Entity"],
+      "type": [
+        "schema:SoftwareSourceCode",
+        "prov:Entity"
+      ],
       "schema:name": "인계장 (kim-minji)",
       "schema:description": "충북대병원 인턴용 인계장 PWA. 기록은 휴대폰 안에만 암호화해서 저장한다.",
-      "schema:programmingLanguage": ["HTML", "CSS", "JavaScript"],
+      "schema:programmingLanguage": [
+        "HTML",
+        "CSS",
+        "JavaScript"
+      ],
       "schema:runtimePlatform": "모바일 브라우저 (iOS Safari, Android Chrome), GitHub Pages",
       "schema:inLanguage": "ko",
       "schema:version": "1.0.0",
       "dcterms:created": "2026-10-16",
-      "schema:maintainer": { "id": "https://github.com/miyeongssam", "schema:name": "miyeongssam" },
-      "schema:audience": { "type": "schema:Audience", "schema:audienceType": "인턴 의사 (김민지)" },
-      "schema:targetProduct": { "id": "hos:HandoffApp" },
+      "schema:maintainer": {
+        "id": "https://github.com/miyeongssam",
+        "schema:name": "miyeongssam"
+      },
+      "schema:audience": {
+        "type": "schema:Audience",
+        "schema:audienceType": "인턴 의사 (김민지)"
+      },
+      "schema:targetProduct": {
+        "id": "hos:HandoffApp"
+      },
       "hos:dataLocality": "on-device-only",
       "hos:containsPatientData": false,
       "dcterms:conformsTo": [
-        { "id": "https://miyeongssam.github.io/kim-minji/ontology/handoff.ttl" },
-        { "id": "https://miyeongssam.github.io/kim-minji/ontology/procedures.jsonld" }
+        {
+          "id": "https://miyeongssam.github.io/kim-minji/ontology/handoff.ttl"
+        },
+        {
+          "id": "https://miyeongssam.github.io/kim-minji/ontology/procedures.jsonld"
+        }
       ],
       "schema:hasPart": [
-        { "id": "app.js", "schema:description": "앱 동작 전체(암호화·화면·백업)" },
-        { "id": "app.css", "schema:description": "화면 모양(밝은/어두운 모드)" },
-        { "id": "index.html", "schema:description": "앱 시작 화면, 보안 정책(CSP)" },
-        { "id": "sw.js", "schema:description": "오프라인용 앱 파일 캐시. 기록은 다루지 않음" },
-        { "id": "manifest.webmanifest", "schema:description": "홈 화면 설치 정보" },
-        { "id": "ontology/", "schema:description": "의미 모델(온톨로지·술기 어휘·JSON-LD context)" },
-        { "id": "metadata/", "schema:description": "이 프로젝트의 메타데이터·결정 기록" },
-        { "id": "docs/", "schema:description": "사용 안내·인계 메모·의미 지도" },
-        { "id": "tests/", "schema:description": "전체 흐름 테스트, 어휘 일치 검사" }
-      ]
+        {
+          "id": "app.js",
+          "schema:description": "앱 동작 전체(암호화·화면·백업)"
+        },
+        {
+          "id": "app.css",
+          "schema:description": "화면 모양(밝은/어두운 모드)"
+        },
+        {
+          "id": "index.html",
+          "schema:description": "앱 시작 화면, 보안 정책(CSP)"
+        },
+        {
+          "id": "sw.js",
+          "schema:description": "오프라인용 앱 파일 캐시. 기록은 다루지 않음"
+        },
+        {
+          "id": "manifest.webmanifest",
+          "schema:description": "홈 화면 설치 정보"
+        },
+        {
+          "id": "ontology/",
+          "schema:description": "의미 모델(온톨로지·술기 어휘·JSON-LD context)"
+        },
+        {
+          "id": "metadata/",
+          "schema:description": "이 프로젝트의 메타데이터·결정 기록"
+        },
+        {
+          "id": "docs/",
+          "schema:description": "사용 안내·인계 메모·의미 지도"
+        },
+        {
+          "id": "tests/",
+          "schema:description": "전체 흐름 테스트, 어휘 일치 검사"
+        }
+      ],
+      "schema:url": {
+        "id": "https://miyeongssam.github.io/kim-minji/"
+      },
+      "dcterms:modified": "2026-10-16",
+      "hos:deployment": {
+        "type": "schema:WebSite",
+        "schema:url": "https://miyeongssam.github.io/kim-minji/",
+        "hos:host": "GitHub Pages",
+        "hos:source": "Deploy from a branch",
+        "hos:branch": "main",
+        "hos:folder": "/(root)",
+        "hos:enforceHttps": true,
+        "hos:customDomain": null,
+        "hos:firstDeployed": "2026-10-16",
+        "hos:mergeCommit": "13c5bc4"
+      },
+      "hos:worklog": {
+        "id": "metadata/worklog.jsonld"
+      }
     },
     {
       "id": "src:intern-orientation-2026",
@@ -48,7 +116,10 @@
       "dcterms:date": "2026-08-24",
       "hos:location": "구글 드라이브 / 충북대병원 인턴 인계장",
       "hos:containsPatientData": false,
-      "hos:usedFor": ["procedures.jsonld 술기 목록", "앞으로 만들 시뮬레이션 게임 물품 사진"],
+      "hos:usedFor": [
+        "procedures.jsonld 술기 목록",
+        "앞으로 만들 시뮬레이션 게임 물품 사진"
+      ],
       "hos:note": "마지막 장의 개인 연락처는 어디에도 옮기지 않는다."
     },
     {
@@ -57,7 +128,9 @@
       "dcterms:title": "IM 내과인계장 (update 260923).docx",
       "hos:location": "구글 드라이브 / 충북대병원 인턴 인계장",
       "hos:status": "Word 원본은 글자를 읽지 못함 → 구글 문서로 저장 후 다시 읽기",
-      "hos:usedFor": ["시뮬레이션 게임 시나리오(사망선언, ABGA, C-line culture, chemoport, line remove, Hickman, 항암제, PCPS 이후)"]
+      "hos:usedFor": [
+        "시뮬레이션 게임 시나리오(사망선언, ABGA, C-line culture, chemoport, line remove, Hickman, 항암제, PCPS 이후)"
+      ]
     },
     {
       "id": "src:site-marking-manual",
@@ -65,7 +138,9 @@
       "dcterms:title": "수술 시술부위 표시 매뉴얼.pdf",
       "hos:location": "구글 드라이브 / 충북대병원 인턴 인계장",
       "hos:status": "글자만 읽음. 과별 표시 위치 그림은 PDF를 대화창에 직접 첨부해야 확인 가능",
-      "hos:usedFor": ["시뮬레이션 게임: 시술부위 직접 그리기"]
+      "hos:usedFor": [
+        "시뮬레이션 게임: 시술부위 직접 그리기"
+      ]
     }
   ]
 }
